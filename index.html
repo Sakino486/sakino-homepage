@@ -1,12 +1,87 @@
 <!DOCTYPE html>
-<html lang="ja"> 
+<html lang="ja">
 <head>
-	<meta charset="UTF-8">
-	<title>Sakino's Homepage</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sakino's Homepage</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(270deg, #74ebd5, #9face6);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #fff;
+      text-align: center;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    header {
+      padding: 4em 0 2em;
+      opacity: 0;
+      transform: translateY(-20px);
+      animation: fadeIn 2s forwards;
+    }
+
+    main {
+      animation: fadeIn 3s forwards;
+      opacity: 0;
+      transform: translateY(20px);
+      padding: 2em;
+    }
+
+    footer {
+      margin-top: 2em;
+      padding: 1em;
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 0.9em;
+    }
+
+    a {
+      display: inline-block;
+      margin: 1em;
+      padding: 0.8em 1.2em;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    a:hover {
+      background-color: #fff;
+      color: #333;
+      transform: scale(1.1);
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 </head>
 <body>
-	<h1>こんにちは</h1>
-	<p>私はSakinoです。</p>
-	<p>〇〇クラス１年生です。</p>
+  <header>
+    <h1>ようこそ、Sakinoの世界へ</h1>
+    <p>Welcome to Sakino’s Universe（欢迎来到 Sakino 的宇宙）</p>
+  </header>
+  <main>
+    <h2>自己紹介（自我介绍）</h2>
+    <p>私はSakino、夢とコードの狭間を旅する学生です。</p>
+
+    <h2>リンク（链接）</h2>
+    <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
+    <a href="https://example.com/blog" target="_blank">ブログ</a>
+  </main>
+  <footer>
+    &copy; 2025 Sakino. All rights reserved.（版权所有）
+  </footer>
 </body>
 </html>
