@@ -12,40 +12,6 @@
       --text-dark: #eee;
     }
 
-    /* 新增过渡样式 */
-    [data-i18n] {
-      position: relative;
-      min-height: 1.2em;
-      display: inline-block;
-      vertical-align: top;
-    }
-
-    .i18n-text {
-      transition: 
-        opacity 0.3s ease,
-        transform 0.3s ease;
-      position: absolute;
-      left: 0;
-      right: 0;
-      pointer-events: none;
-    }
-
-    .i18n-text.exit {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-
-    .i18n-text.enter {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-
-    .i18n-text.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* 保持原有样式 */
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -60,11 +26,114 @@
       flex-direction: column;
     }
 
-    /* 其他原有样式保持不变... */
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    header {
+      padding: 4em 0 2em;
+      animation: fadeIn 2s forwards;
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+
+    main {
+      padding: 2em;
+      animation: fadeIn 3s forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    footer {
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 0.9em;
+      padding: 2em 1em;
+      margin-top: auto;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion) {
+      header, main { animation: none; opacity: 1; transform: none; }
+    }
+
+    img.avatar {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 1em;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1em;
+      justify-content: center;
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 0;
+    }
+
+    .button {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 0.6em 1.2em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .button:hover {
+      background-color: #fff;
+      color: #333;
+      transform: scale(1.05);
+    }
+
+    a {
+      display: inline-block;
+      margin: 1em;
+      padding: 0.8em 1.2em;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    a:hover {
+      background-color: #fff;
+      color: #333;
+      transform: scale(1.05);
+    }
+
+    .language-select {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 0.6em 2.5em 0.6em 1.2em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.7em center;
+      background-size: 1em;
+    }
   </style>
 </head>
 <body>
-  <!-- HTML结构保持不变 -->
   <header>
     <h1 data-i18n="title"></h1>
     <p data-i18n="subtitle"></p>
@@ -154,78 +223,10 @@
       }
 
       init() {
-        this.initTextWrappers();
         this.renderLanguageOptions();
         this.applyTheme();
         this.updateAllContent();
         this.bindEvents();
-      }
-
-      initTextWrappers() {
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-          if (!el.querySelector('.i18n-text')) {
-            const wrapper = document.createElement('span');
-            wrapper.className = 'i18n-text active';
-            wrapper.textContent = el.textContent;
-            el.innerHTML = '';
-            el.appendChild(wrapper);
-          }
-        });
-      }
-
-      async updateTextElement(el, newText) {
-        const container = el.parentElement;
-        
-        // 创建新文本元素
-        const newElement = document.createElement('span');
-        newElement.className = 'i18n-text enter';
-        newElement.textContent = newText;
-        
-        // 添加新元素
-        container.appendChild(newElement);
-        
-        // 触发动画
-        requestAnimationFrame(() => {
-          newElement.classList.add('active');
-          el.classList.add('exit');
-        });
-
-        // 等待动画完成
-        await new Promise(resolve => {
-          setTimeout(() => {
-            container.removeChild(el);
-            newElement.classList.remove('enter', 'active');
-            resolve();
-          }, 300);
-        });
-      }
-
-      async updateAllContent() {
-        const content = APP_CONFIG.languages[this.lang].content;
-        const updates = [];
-        
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-          const key = el.dataset.i18n;
-          if (key === 'themeBtn') return;
-          
-          const currentElement = el.querySelector('.i18n-text');
-          updates.push(
-            this.updateTextElement(currentElement, content[key])
-          );
-        });
-
-        await Promise.all(updates);
-        this.updateThemeButton();
-      }
-
-      updateThemeButton() {
-        const themeKey = this.isDarkMode ? 'dark' : 'light';
-        const btnText = APP_CONFIG.languages[this.lang].content.themeBtn[themeKey];
-        document.getElementById('theme-toggle').textContent = btnText;
-      }
-
-      applyTheme() {
-        document.body.classList.toggle('dark', this.isDarkMode);
       }
 
       renderLanguageOptions() {
@@ -236,13 +237,38 @@
         selector.value = this.lang;
       }
 
+      applyTheme() {
+        document.body.classList.toggle('dark', this.isDarkMode);
+      }
+
+      updateAllContent() {
+        const content = APP_CONFIG.languages[this.lang].content;
+        
+        // 更新常规文本
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.dataset.i18n;
+          if (key !== 'themeBtn') el.textContent = content[key];
+        });
+
+        // 更新主题按钮
+        this.updateThemeButton();
+      }
+
+      updateThemeButton() {
+        const themeKey = this.isDarkMode ? 'dark' : 'light';
+        const btnText = APP_CONFIG.languages[this.lang].content.themeBtn[themeKey];
+        document.getElementById('theme-toggle').textContent = btnText;
+      }
+
       bindEvents() {
+        // 语言切换
         document.getElementById('language-select').addEventListener('change', e => {
           this.lang = e.target.value;
           localStorage.setItem('lang', this.lang);
           this.updateAllContent();
         });
 
+        // 主题切换
         document.getElementById('theme-toggle').addEventListener('click', () => {
           this.isDarkMode = !this.isDarkMode;
           localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
@@ -252,10 +278,12 @@
       }
     }
 
+    // 初始化应用
     new AppController();
   </script>
 </body>
 </html>
+
 
 
 
