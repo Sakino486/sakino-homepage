@@ -218,19 +218,15 @@
     class AppController {
       constructor() {
         this.lang = localStorage.getItem('lang') || 'ja';
-        this.currentTheme = localStorage.getItem('theme') || 'light';
+        this.isDarkMode = localStorage.getItem('theme') === 'dark';
         this.init();
       }
 
       init() {
-        this.initTheme();
         this.renderLanguageOptions();
+        this.applyTheme();
         this.updateAllContent();
         this.bindEvents();
-      }
-
-      initTheme() {
-        document.body.classList.toggle('dark', this.currentTheme === 'dark');
       }
 
       renderLanguageOptions() {
@@ -241,10 +237,14 @@
         selector.value = this.lang;
       }
 
+      applyTheme() {
+        document.body.classList.toggle('dark', this.isDarkMode);
+      }
+
       updateAllContent() {
         const content = APP_CONFIG.languages[this.lang].content;
         
-        // 更新常规内容
+        // 更新常规文本
         document.querySelectorAll('[data-i18n]').forEach(el => {
           const key = el.dataset.i18n;
           if (key !== 'themeBtn') el.textContent = content[key];
@@ -255,10 +255,9 @@
       }
 
       updateThemeButton() {
-        const isDark = this.currentTheme === 'dark';
-        const themeKey = isDark ? 'dark' : 'light';
-        const themeText = APP_CONFIG.languages[this.lang].content.themeBtn[themeKey];
-        document.getElementById('theme-toggle').textContent = themeText;
+        const themeKey = this.isDarkMode ? 'dark' : 'light';
+        const btnText = APP_CONFIG.languages[this.lang].content.themeBtn[themeKey];
+        document.getElementById('theme-toggle').textContent = btnText;
       }
 
       bindEvents() {
@@ -271,15 +270,15 @@
 
         // 主题切换
         document.getElementById('theme-toggle').addEventListener('click', () => {
-          this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
-          document.body.classList.toggle('dark');
-          localStorage.setItem('theme', this.currentTheme);
+          this.isDarkMode = !this.isDarkMode;
+          localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
+          this.applyTheme();
           this.updateThemeButton();
         });
       }
     }
 
-    // 启动应用
+    // 初始化应用
     new AppController();
   </script>
 </body>
