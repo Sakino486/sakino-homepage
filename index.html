@@ -135,7 +135,13 @@
     </select>
 
     <br />
-    <button id="themeToggle">ダーク / ライト 切り替え（切换日夜模式）</button>
+    <button id="themeToggle">
+      <span class="lang-ja">ダーク / ライト 切り替え（切换日夜模式）</span>
+      <span class="lang-zh" style="display:none;">切换黑暗/明亮模式</span>
+      <span class="lang-en" style="display:none;">Toggle Dark / Light Mode</span>
+      <span class="lang-ko" style="display:none;">다크 / 라이트 모드 전환</span>
+      <span class="lang-es" style="display:none;">Cambiar modo oscuro / claro</span>
+    </button>
   </main>
   <footer>
     <p class="lang-ja">&copy; 2025 Sakino. All rights reserved.（版权所有）</p>
@@ -147,15 +153,22 @@
 
   <script>
     const selector = document.getElementById('langSelector');
-    selector.addEventListener('change', () => {
-      const lang = selector.value;
-      const allLangs = ['ja', 'zh', 'en', 'ko', 'es'];
+    const allLangs = ['ja', 'zh', 'en', 'ko', 'es'];
+
+    function switchLanguage(lang) {
       allLangs.forEach(l => {
         document.querySelectorAll(`.lang-${l}`).forEach(el => {
           el.style.display = (l === lang) ? '' : 'none';
         });
       });
+    }
+
+    selector.addEventListener('change', () => {
+      switchLanguage(selector.value);
     });
+
+    // Initialize language display on page load
+    switchLanguage(selector.value);
 
     const btn = document.getElementById('themeToggle');
     let isDark = true;
