@@ -10,57 +10,130 @@
       --bg-dark: linear-gradient(270deg, #232526, #414345);
       --text-light: #fff;
       --text-dark: #eee;
+      --viewport-height: 100vh;
     }
 
-    /* 新增过渡样式 */
+    /* 视窗稳定系统 */
+    html {
+      overflow-y: scroll;
+    }
+
+    body {
+      scrollbar-gutter: stable;
+      padding-right: calc(100vw - 100%);
+      min-height: var(--viewport-height);
+      max-height: var(--viewport-height);
+      overflow-x: hidden;
+    }
+
+    /* 布局稳定系统 */
     [data-i18n] {
       position: relative;
       min-height: 1.2em;
       display: inline-block;
       vertical-align: top;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-optical-sizing: none;
+      font-size: clamp(1rem, 1vw + 1rem, 1.25rem);
     }
 
     .i18n-text {
-      transition: 
-        opacity 0.3s ease,
-        transform 0.3s ease;
+      transition: opacity 0.3s ease, transform 0.3s ease;
       position: absolute;
       left: 0;
       right: 0;
       pointer-events: none;
+      will-change: transform, opacity;
+      backface-visibility: hidden;
     }
 
-    .i18n-text.exit {
-      opacity: 0;
-      transform: translateY(-10px);
+    .i18n-text.exit { opacity: 0; transform: translateY(-8px); }
+    .i18n-text.enter { opacity: 0; transform: translateY(8px); }
+    .i18n-text.active { opacity: 1; transform: translateY(0); }
+
+    /* 界面元素稳定 */
+    .btn-group {
+      width: 420px;
+      max-width: 90%;
+      margin: 20px auto;
+      display: flex;
+      gap: 12px;
+      padding: 0 10px;
     }
 
-    .i18n-text.enter {
-      opacity: 0;
-      transform: translateY(10px);
+    .language-select, #theme-toggle {
+      flex: 1;
+      min-width: 160px;
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .i18n-text.active {
-      opacity: 1;
-      transform: translateY(0);
+    img.avatar {
+      width: 180px;
+      height: 180px;
+      aspect-ratio: 1/1;
+      flex-shrink: 0;
+    }
+
+    a[data-i18n] {
+      min-width: 140px;
+      display: inline-flex;
+      justify-content: center;
+      white-space: nowrap;
     }
 
     /* 保持原有样式 */
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: inherit;
       background: var(--bg-light);
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
       color: var(--text-light);
       text-align: center;
       transition: background 0.5s, color 0.5s;
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    /* 其他原有样式保持不变... */
+    header {
+      padding: 4em 0 2em;
+      animation: fadeIn 2s forwards;
+      opacity: 0;
+      transform: translateY(-20px);
+      height: 280px;
+      overflow: hidden;
+    }
+
+    main {
+      padding: 2em;
+      animation: fadeIn 3s forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    footer {
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 0.9em;
+      padding: 2em 1em;
+      margin-top: auto;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion) {
+      header, main { animation: none; opacity: 1; transform: none; }
+    }
   </style>
 </head>
 <body>
@@ -102,10 +175,7 @@
             linksTitle: "リンク",
             githubLink: "GitHub",
             blogLink: "技術ブログ",
-            themeBtn: {
-              light: "ダークモード",
-              dark: "ライトモード"
-            },
+            themeBtn: { light: "ダークモード", dark: "ライトモード" },
             copyright: "© 2025 Sakino. 無断転載を禁じます"
           }
         },
@@ -119,10 +189,7 @@
             linksTitle: "链接",
             githubLink: "GitHub",
             blogLink: "技术博客",
-            themeBtn: {
-              light: "深色模式",
-              dark: "浅色模式"
-            },
+            themeBtn: { light: "深色模式", dark: "浅色模式" },
             copyright: "© 2025 Sakino. 版权所有"
           }
         },
@@ -136,10 +203,7 @@
             linksTitle: "Links",
             githubLink: "GitHub",
             blogLink: "Tech Blog",
-            themeBtn: {
-              light: "Dark Mode",
-              dark: "Light Mode"
-            },
+            themeBtn: { light: "Dark Mode", dark: "Light Mode" },
             copyright: "© 2025 Sakino. All Rights Reserved"
           }
         }
@@ -154,11 +218,22 @@
       }
 
       init() {
+        this.lockViewportHeight();
         this.initTextWrappers();
         this.renderLanguageOptions();
         this.applyTheme();
         this.updateAllContent();
         this.bindEvents();
+      }
+
+      lockViewportHeight() {
+        const updateHeight = () => {
+          const vh = window.innerHeight;
+          document.documentElement.style.setProperty('--viewport-height', `${vh}px`);
+        };
+        
+        updateHeight();
+        window.addEventListener('resize', () => requestAnimationFrame(updateHeight));
       }
 
       initTextWrappers() {
@@ -176,23 +251,23 @@
       async updateTextElement(el, newText) {
         const container = el.parentElement;
         
-        // 创建新文本元素
         const newElement = document.createElement('span');
         newElement.className = 'i18n-text enter';
         newElement.textContent = newText;
         
-        // 添加新元素
+        // 布局预计算
+        container.style.contain = 'strict';
         container.appendChild(newElement);
-        
-        // 触发动画
+        newElement.offsetHeight; // 触发布局
+
         requestAnimationFrame(() => {
           newElement.classList.add('active');
           el.classList.add('exit');
         });
 
-        // 等待动画完成
         await new Promise(resolve => {
           setTimeout(() => {
+            container.style.contain = '';
             container.removeChild(el);
             newElement.classList.remove('enter', 'active');
             resolve();
@@ -209,9 +284,7 @@
           if (key === 'themeBtn') return;
           
           const currentElement = el.querySelector('.i18n-text');
-          updates.push(
-            this.updateTextElement(currentElement, content[key])
-          );
+          updates.push(this.updateTextElement(currentElement, content[key]));
         });
 
         await Promise.all(updates);
@@ -256,6 +329,7 @@
   </script>
 </body>
 </html>
+
 
 
 
