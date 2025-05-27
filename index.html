@@ -5,15 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sakino's Homepage</title>
   <style>
+    :root {
+      --bg-light: linear-gradient(270deg, #74ebd5, #9face6);
+      --bg-dark: linear-gradient(270deg, #1f1c2c, #928dab);
+      --text-light: #ffffff;
+      --text-dark: #dddddd;
+      --card-light: rgba(255, 255, 255, 0.1);
+      --card-dark: rgba(0, 0, 0, 0.3);
+    }
+
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(270deg, #74ebd5, #9face6);
+      background: var(--bg-light);
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
-      color: #fff;
+      color: var(--text-light);
       text-align: center;
-      transition: background 0.5s ease, color 0.5s ease;
+      transition: background 0.5s, color 0.5s;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
     }
 
     @keyframes gradientBG {
@@ -22,37 +36,29 @@
       100% { background-position: 0% 50%; }
     }
 
-    header, main, footer {
-      opacity: 0;
-      transform: translateY(20px);
+    header, main {
+      padding: 2em 1em;
       animation: fadeIn 2s forwards;
     }
 
-    header {
-      transform: translateY(-20px);
-      animation-delay: 0.2s;
-    }
-
-    main {
-      animation-delay: 0.4s;
-      padding: 2em;
-    }
-
     footer {
-      animation-delay: 0.6s;
       margin-top: 2em;
       padding: 1em;
-      background: rgba(0, 0, 0, 0.2);
+      background: var(--card-light);
       font-size: 0.9em;
+    }
+
+    body.dark footer {
+      background: var(--card-dark);
     }
 
     a {
       display: inline-block;
       margin: 1em;
       padding: 0.8em 1.2em;
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: var(--card-light);
       border-radius: 8px;
-      color: #fff;
+      color: inherit;
       text-decoration: none;
       transition: all 0.3s ease;
     }
@@ -63,22 +69,30 @@
       transform: scale(1.1);
     }
 
-    button {
-      margin-top: 2em;
-      padding: 0.8em 1.2em;
-      font-size: 1em;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background-color: rgba(255, 255, 255, 0.2);
-      color: #fff;
-      transition: all 0.3s ease;
+    .language-switcher, .mode-switcher {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1em;
+      margin-bottom: 1em;
     }
 
-    button:hover {
+    .language-switcher button, .mode-switcher button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: inherit;
+      padding: 0.6em 1.2em;
+      border-radius: 10px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .language-switcher button:hover, .mode-switcher button:hover {
       background-color: #fff;
       color: #333;
-      transform: scale(1.05);
+      transform: scale(1.1);
     }
 
     @keyframes fadeIn {
@@ -87,114 +101,104 @@
         transform: translateY(0);
       }
     }
+
+    .lang-content {
+      display: none;
+    }
+
+    .lang-content.active {
+      display: block;
+    }
+
+    .avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 1em auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      transition: transform 0.3s;
+    }
+
+    .avatar:hover {
+      transform: scale(1.05) rotate(1deg);
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1 class="lang-ja">ようこそ、Sakinoの世界へ</h1>
-    <h1 class="lang-zh" style="display:none;">欢迎来到 Sakino 的宇宙</h1>
-    <h1 class="lang-en" style="display:none;">Welcome to Sakino's Universe</h1>
-    <h1 class="lang-ko" style="display:none;">Sakino의 세계에 오신 것을 환영합니다</h1>
-    <h1 class="lang-es" style="display:none;">Bienvenido al universo de Sakino</h1>
+    <div class="language-switcher">
+      <button onclick="switchLanguage('ja')">🇯🇵 日本語</button>
+      <button onclick="switchLanguage('zh')">🇨🇳 中文</button>
+      <button onclick="switchLanguage('en')">🇺🇸 English</button>
+    </div>
+    <div class="mode-switcher">
+      <button onclick="toggleMode()">🌗 切换深浅模式</button>
+    </div>
+
+    <img src="DSCF3007.JPG" alt="Sakino's Photo" class="avatar" />
+
+    <!-- Welcome Messages -->
+    <div id="title-ja" class="lang-content active">
+      <h1>ようこそ、Sakinoの世界へ</h1>
+      <p>夢とコードの狭間を旅する学生</p>
+    </div>
+    <div id="title-zh" class="lang-content">
+      <h1>欢迎来到 Sakino 的宇宙</h1>
+      <p>在梦与代码之间旅行的学生</p>
+    </div>
+    <div id="title-en" class="lang-content">
+      <h1>Welcome to Sakino’s Universe</h1>
+      <p>A student journeying between dreams and code</p>
+    </div>
   </header>
+
   <main>
-    <img src="DSCF3007.JPG" alt="Sakinoの写真" style="width:150px; border-radius: 50%; margin-bottom: 1em;" />
-
-    <h2 class="lang-ja">自己紹介（自我介绍）</h2>
-    <h2 class="lang-zh" style="display:none;">自我介绍</h2>
-    <h2 class="lang-en" style="display:none;">Introduction</h2>
-    <h2 class="lang-ko" style="display:none;">자기소개</h2>
-    <h2 class="lang-es" style="display:none;">Introducción</h2>
-
-    <p class="lang-ja">私はSakino、夢とコードの狭間を旅する学生です。</p>
-    <p class="lang-zh" style="display:none;">我是Sakino，一个穿梭在梦与代码之间的学生。</p>
-    <p class="lang-en" style="display:none;">I’m Sakino, a student traveling between dreams and code.</p>
-    <p class="lang-ko" style="display:none;">저는 꿈과 코드 사이를 여행하는 학생 Sakino입니다.</p>
-    <p class="lang-es" style="display:none;">Soy Sakino, un estudiante que viaja entre sueños y código.</p>
-
-    <h2 class="lang-ja">リンク（链接）</h2>
-    <h2 class="lang-zh" style="display:none;">链接</h2>
-    <h2 class="lang-en" style="display:none;">Links</h2>
-    <h2 class="lang-ko" style="display:none;">링크</h2>
-    <h2 class="lang-es" style="display:none;">Enlaces</h2>
-
-    <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
-    <a href="https://example.com/blog" target="_blank" class="lang-ja">ブログ</a>
-    <a href="https://example.com/blog" target="_blank" class="lang-zh" style="display:none;">博客</a>
-    <a href="https://example.com/blog" target="_blank" class="lang-en" style="display:none;">Blog</a>
-    <a href="https://example.com/blog" target="_blank" class="lang-ko" style="display:none;">블로그</a>
-    <a href="https://example.com/blog" target="_blank" class="lang-es" style="display:none;">Blog</a>
-
-    <br />
-    <select id="langSelector" aria-label="言語選択（Language selector）" style="margin-top:2em; padding:0.5em 1em; font-size:1em; border-radius:6px; border:none; cursor:pointer;">
-      <option value="ja">日本語</option>
-      <option value="zh">中文</option>
-      <option value="en">English</option>
-      <option value="ko">한국어</option>
-      <option value="es">Español</option>
-    </select>
-
-    <br />
-    <button id="themeToggle">
-      <span class="lang-ja">ダーク / ライト 切り替え（切换日夜模式）</span>
-      <span class="lang-zh" style="display:none;">切换黑暗/明亮模式</span>
-      <span class="lang-en" style="display:none;">Toggle Dark / Light Mode</span>
-      <span class="lang-ko" style="display:none;">다크 / 라이트 모드 전환</span>
-      <span class="lang-es" style="display:none;">Cambiar modo oscuro / claro</span>
-    </button>
+    <div id="content-ja" class="lang-content active">
+      <h2>リンク</h2>
+      <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
+      <a href="https://example.com/blog" target="_blank">ブログ</a>
+    </div>
+    <div id="content-zh" class="lang-content">
+      <h2>链接</h2>
+      <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
+      <a href="https://example.com/blog" target="_blank">博客</a>
+    </div>
+    <div id="content-en" class="lang-content">
+      <h2>Links</h2>
+      <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
+      <a href="https://example.com/blog" target="_blank">Blog</a>
+    </div>
   </main>
+
   <footer>
-    <p class="lang-ja">&copy; 2025 Sakino. All rights reserved.（版权所有）</p>
-    <p class="lang-zh" style="display:none;">&copy; 2025 Sakino。版权所有。</p>
-    <p class="lang-en" style="display:none;">&copy; 2025 Sakino. All rights reserved.</p>
-    <p class="lang-ko" style="display:none;">&copy; 2025 Sakino. 판권 소유.</p>
-    <p class="lang-es" style="display:none;">&copy; 2025 Sakino. Todos los derechos reservados.</p>
+    <div id="footer-ja" class="lang-content active">
+      &copy; 2025 Sakino. 全著作権所有
+    </div>
+    <div id="footer-zh" class="lang-content">
+      &copy; 2025 Sakino. 版权所有
+    </div>
+    <div id="footer-en" class="lang-content">
+      &copy; 2025 Sakino. All rights reserved.
+    </div>
   </footer>
 
   <script>
-    const selector = document.getElementById('langSelector');
-    const allLangs = ['ja', 'zh', 'en', 'ko', 'es'];
-
     function switchLanguage(lang) {
-      allLangs.forEach(l => {
-        document.querySelectorAll(`.lang-${l}`).forEach(el => {
-          el.style.display = (l === lang) ? '' : 'none';
+      const langs = ['ja', 'zh', 'en'];
+      langs.forEach(code => {
+        document.querySelectorAll(`#title-${code}, #content-${code}, #footer-${code}`).forEach(el => {
+          el.classList.remove('active');
         });
+      });
+      document.querySelectorAll(`#title-${lang}, #content-${lang}, #footer-${lang}`).forEach(el => {
+        el.classList.add('active');
       });
     }
 
-    selector.addEventListener('change', () => {
-      switchLanguage(selector.value);
-    });
-
-    // Initialize language display on page load
-    switchLanguage(selector.value);
-
-    const btn = document.getElementById('themeToggle');
-    let isDark = true;
-
-    btn.addEventListener('click', () => {
-      if (isDark) {
-        document.body.style.background = '#f1f1f1';
-        document.body.style.color = '#333';
-        document.querySelectorAll('a').forEach(link => {
-          link.style.backgroundColor = '#ddd';
-          link.style.color = '#333';
-        });
-        btn.style.backgroundColor = '#ccc';
-        btn.style.color = '#000';
-      } else {
-        document.body.style.background = 'linear-gradient(270deg, #74ebd5, #9face6)';
-        document.body.style.color = '#fff';
-        document.querySelectorAll('a').forEach(link => {
-          link.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-          link.style.color = '#fff';
-        });
-        btn.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-        btn.style.color = '#fff';
-      }
-      isDark = !isDark;
-    });
+    function toggleMode() {
+      document.body.classList.toggle('dark');
+    }
   </script>
 </body>
 </html>
