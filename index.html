@@ -22,21 +22,24 @@
       100% { background-position: 0% 50%; }
     }
 
-    header {
-      padding: 4em 0 2em;
+    header, main, footer {
       opacity: 0;
-      transform: translateY(-20px);
+      transform: translateY(20px);
       animation: fadeIn 2s forwards;
     }
 
+    header {
+      transform: translateY(-20px);
+      animation-delay: 0.2s;
+    }
+
     main {
-      animation: fadeIn 3s forwards;
-      opacity: 0;
-      transform: translateY(20px);
+      animation-delay: 0.4s;
       padding: 2em;
     }
 
     footer {
+      animation-delay: 0.6s;
       margin-top: 2em;
       padding: 1em;
       background: rgba(0, 0, 0, 0.2);
@@ -88,48 +91,72 @@
 </head>
 <body>
   <header>
-    <h1>ようこそ、Sakinoの世界へ</h1>
-    <p>Welcome to Sakino’s Universe（欢迎来到 Sakino 的宇宙）</p>
+    <h1 class="lang-ja">ようこそ、Sakinoの世界へ</h1>
+    <h1 class="lang-zh" style="display:none;">欢迎来到 Sakino 的宇宙</h1>
+    <h1 class="lang-en" style="display:none;">Welcome to Sakino's Universe</h1>
+    <h1 class="lang-ko" style="display:none;">Sakino의 세계에 오신 것을 환영합니다</h1>
+    <h1 class="lang-es" style="display:none;">Bienvenido al universo de Sakino</h1>
   </header>
   <main>
     <img src="https://via.placeholder.com/150" alt="Sakinoの写真" style="width:150px; border-radius: 50%; margin-bottom: 1em;" />
 
-    <h2>自己紹介（自我介绍）</h2>
-    <p class="lang-ja">私はSakino、夢とコードの狭間を旅する学生です。</p>
-    <p class="lang-zh" style="display: none;">我是Sakino，一个穿梭在梦与代码之间的学生。</p>
-    <p class="lang-en" style="display: none;">I’m Sakino, a student traveling between dreams and code.</p>
+    <h2 class="lang-ja">自己紹介（自我介绍）</h2>
+    <h2 class="lang-zh" style="display:none;">自我介绍</h2>
+    <h2 class="lang-en" style="display:none;">Introduction</h2>
+    <h2 class="lang-ko" style="display:none;">자기소개</h2>
+    <h2 class="lang-es" style="display:none;">Introducción</h2>
 
-    <h2>リンク（链接）</h2>
+    <p class="lang-ja">私はSakino、夢とコードの狭間を旅する学生です。</p>
+    <p class="lang-zh" style="display:none;">我是Sakino，一个穿梭在梦与代码之间的学生。</p>
+    <p class="lang-en" style="display:none;">I’m Sakino, a student traveling between dreams and code.</p>
+    <p class="lang-ko" style="display:none;">저는 꿈과 코드 사이를 여행하는 학생 Sakino입니다.</p>
+    <p class="lang-es" style="display:none;">Soy Sakino, un estudiante que viaja entre sueños y código.</p>
+
+    <h2 class="lang-ja">リンク（链接）</h2>
+    <h2 class="lang-zh" style="display:none;">链接</h2>
+    <h2 class="lang-en" style="display:none;">Links</h2>
+    <h2 class="lang-ko" style="display:none;">링크</h2>
+    <h2 class="lang-es" style="display:none;">Enlaces</h2>
+
     <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
-    <a href="https://example.com/blog" target="_blank">ブログ</a>
+    <a href="https://example.com/blog" target="_blank" class="lang-ja">ブログ</a>
+    <a href="https://example.com/blog" target="_blank" class="lang-zh" style="display:none;">博客</a>
+    <a href="https://example.com/blog" target="_blank" class="lang-en" style="display:none;">Blog</a>
+    <a href="https://example.com/blog" target="_blank" class="lang-ko" style="display:none;">블로그</a>
+    <a href="https://example.com/blog" target="_blank" class="lang-es" style="display:none;">Blog</a>
 
     <br />
     <select id="langSelector" aria-label="言語選択（Language selector）" style="margin-top:2em; padding:0.5em 1em; font-size:1em; border-radius:6px; border:none; cursor:pointer;">
       <option value="ja">日本語</option>
       <option value="zh">中文</option>
       <option value="en">English</option>
+      <option value="ko">한국어</option>
+      <option value="es">Español</option>
     </select>
 
     <br />
     <button id="themeToggle">ダーク / ライト 切り替え（切换日夜模式）</button>
   </main>
   <footer>
-    &copy; 2025 Sakino. All rights reserved.（版权所有）
+    <p class="lang-ja">&copy; 2025 Sakino. All rights reserved.（版权所有）</p>
+    <p class="lang-zh" style="display:none;">&copy; 2025 Sakino。版权所有。</p>
+    <p class="lang-en" style="display:none;">&copy; 2025 Sakino. All rights reserved.</p>
+    <p class="lang-ko" style="display:none;">&copy; 2025 Sakino. 판권 소유.</p>
+    <p class="lang-es" style="display:none;">&copy; 2025 Sakino. Todos los derechos reservados.</p>
   </footer>
 
   <script>
-    // 语言切换
     const selector = document.getElementById('langSelector');
     selector.addEventListener('change', () => {
       const lang = selector.value;
-      ['ja', 'zh', 'en'].forEach(l => {
+      const allLangs = ['ja', 'zh', 'en', 'ko', 'es'];
+      allLangs.forEach(l => {
         document.querySelectorAll(`.lang-${l}`).forEach(el => {
           el.style.display = (l === lang) ? '' : 'none';
         });
       });
     });
 
-    // 日夜模式切换
     const btn = document.getElementById('themeToggle');
     let isDark = true;
 
