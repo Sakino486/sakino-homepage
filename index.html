@@ -27,6 +27,10 @@
       color: var(--text-light);
       text-align: center;
       transition: background 0.5s, color 0.5s;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     body.dark {
@@ -41,14 +45,15 @@
     }
 
     header, main {
-      padding: 2em 1em;
+      padding: 2em 1em 1em;
+      flex-grow: 1;
     }
 
     footer {
-      margin-top: 2em;
-      padding: 1em;
       background: var(--card-light);
       font-size: 0.9em;
+      padding: 1em;
+      position: relative;
     }
 
     body.dark footer {
@@ -75,9 +80,9 @@
     .switcher {
       display: flex;
       justify-content: center;
+      gap: 1em;
+      padding-top: 1em;
       flex-wrap: wrap;
-      gap: 0.6em;
-      margin: 1em 0;
     }
 
     .switcher select,
@@ -85,18 +90,31 @@
       background: var(--button-bg);
       border: 1px solid rgba(255, 255, 255, 0.2);
       color: var(--button-text);
-      padding: 0.5em 1em;
+      padding: 0.5em 1.4em;
       border-radius: 999px;
       font-size: 0.95em;
       cursor: pointer;
       transition: all 0.3s ease;
       backdrop-filter: blur(6px);
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      position: relative;
     }
 
     .switcher select:hover,
     .switcher button:hover {
       background: var(--button-hover);
       color: var(--button-text-hover);
+    }
+
+    /* 给 select 添加一个向下箭头 */
+    .switcher select {
+      background-image: url('data:image/svg+xml;charset=US-ASCII,<svg fill="%23fff" height="10" viewBox="0 0 24 24" width="10" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 0.8em center;
+      background-size: 10px 10px;
+      padding-right: 2.5em;
     }
 
     .lang-content {
@@ -124,16 +142,6 @@
 </head>
 <body>
   <header>
-    <!-- 语言和模式切换按钮 -->
-    <div class="switcher">
-      <select onchange="switchLanguage(this.value)">
-        <option value="ja">日本語</option>
-        <option value="zh">中文</option>
-        <option value="en">English</option>
-      </select>
-      <button id="modeToggle" onclick="toggleMode()">ダークモード</button>
-    </div>
-
     <!-- 头像 -->
     <img src="DSCF3007.JPG" alt="Sakino's Photo" class="avatar" />
 
@@ -180,6 +188,15 @@
     <div id="footer-en" class="lang-content">
       &copy; 2025 Sakino. All rights reserved.
     </div>
+
+    <div class="switcher" style="margin-top: 1em;">
+      <select onchange="switchLanguage(this.value)" aria-label="Select Language">
+        <option value="ja">日本語</option>
+        <option value="zh">中文</option>
+        <option value="en">English</option>
+      </select>
+      <button id="modeToggle" onclick="toggleMode()" aria-pressed="false">ダークモード</button>
+    </div>
   </footer>
 
   <script>
@@ -203,11 +220,14 @@
         el.classList.add('active');
       });
       updateModeButton();
+      // 同步下拉框选项值
+      document.querySelector('select').value = lang;
     }
 
     function toggleMode() {
-      document.body.classList.toggle("dark");
+      const isDark = document.body.classList.toggle("dark");
       updateModeButton();
+      document.getElementById("modeToggle").setAttribute("aria-pressed", isDark);
     }
 
     function updateModeButton() {
