@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sakino's Homepage</title>
   <style>
     body {
@@ -13,6 +13,7 @@
       animation: gradientBG 15s ease infinite;
       color: #fff;
       text-align: center;
+      transition: background 0.5s ease, color 0.5s ease;
     }
 
     @keyframes gradientBG {
@@ -59,6 +60,24 @@
       transform: scale(1.1);
     }
 
+    button {
+      margin-top: 2em;
+      padding: 0.8em 1.2em;
+      font-size: 1em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #fff;
+      color: #333;
+      transform: scale(1.05);
+    }
+
     @keyframes fadeIn {
       to {
         opacity: 1;
@@ -73,15 +92,69 @@
     <p>Welcome to Sakino’s Universe（欢迎来到 Sakino 的宇宙）</p>
   </header>
   <main>
+    <img src="https://via.placeholder.com/150" alt="Sakinoの写真" style="width:150px; border-radius: 50%; margin-bottom: 1em;" />
+
     <h2>自己紹介（自我介绍）</h2>
-    <p>私はSakino、夢とコードの狭間を旅する学生です。</p>
+    <p class="lang-ja">私はSakino、夢とコードの狭間を旅する学生です。</p>
+    <p class="lang-zh" style="display: none;">我是Sakino，一个穿梭在梦与代码之间的学生。</p>
+    <p class="lang-en" style="display: none;">I’m Sakino, a student traveling between dreams and code.</p>
 
     <h2>リンク（链接）</h2>
     <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
     <a href="https://example.com/blog" target="_blank">ブログ</a>
+
+    <br />
+    <select id="langSelector" aria-label="言語選択（Language selector）" style="margin-top:2em; padding:0.5em 1em; font-size:1em; border-radius:6px; border:none; cursor:pointer;">
+      <option value="ja">日本語</option>
+      <option value="zh">中文</option>
+      <option value="en">English</option>
+    </select>
+
+    <br />
+    <button id="themeToggle">ダーク / ライト 切り替え（切换日夜模式）</button>
   </main>
   <footer>
     &copy; 2025 Sakino. All rights reserved.（版权所有）
   </footer>
+
+  <script>
+    // 语言切换
+    const selector = document.getElementById('langSelector');
+    selector.addEventListener('change', () => {
+      const lang = selector.value;
+      ['ja', 'zh', 'en'].forEach(l => {
+        document.querySelectorAll(`.lang-${l}`).forEach(el => {
+          el.style.display = (l === lang) ? '' : 'none';
+        });
+      });
+    });
+
+    // 日夜模式切换
+    const btn = document.getElementById('themeToggle');
+    let isDark = true;
+
+    btn.addEventListener('click', () => {
+      if (isDark) {
+        document.body.style.background = '#f1f1f1';
+        document.body.style.color = '#333';
+        document.querySelectorAll('a').forEach(link => {
+          link.style.backgroundColor = '#ddd';
+          link.style.color = '#333';
+        });
+        btn.style.backgroundColor = '#ccc';
+        btn.style.color = '#000';
+      } else {
+        document.body.style.background = 'linear-gradient(270deg, #74ebd5, #9face6)';
+        document.body.style.color = '#fff';
+        document.querySelectorAll('a').forEach(link => {
+          link.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+          link.style.color = '#fff';
+        });
+        btn.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        btn.style.color = '#fff';
+      }
+      isDark = !isDark;
+    });
+  </script>
 </body>
 </html>
