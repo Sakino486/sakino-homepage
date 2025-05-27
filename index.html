@@ -80,6 +80,7 @@
       margin: 1em 0;
     }
 
+    .switcher select,
     .switcher button {
       background: var(--button-bg);
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -92,6 +93,7 @@
       backdrop-filter: blur(6px);
     }
 
+    .switcher select:hover,
     .switcher button:hover {
       background: var(--button-hover);
       color: var(--button-text-hover);
@@ -122,12 +124,14 @@
 </head>
 <body>
   <header>
-    <!-- 按钮 -->
+    <!-- 语言和模式切换按钮 -->
     <div class="switcher">
-      <button onclick="switchLanguage('ja')">日本語</button>
-      <button onclick="switchLanguage('zh')">中文</button>
-      <button onclick="switchLanguage('en')">English</button>
-      <button onclick="toggleMode()">深浅模式</button>
+      <select onchange="switchLanguage(this.value)">
+        <option value="ja">日本語</option>
+        <option value="zh">中文</option>
+        <option value="en">English</option>
+      </select>
+      <button id="modeToggle" onclick="toggleMode()">ダークモード</button>
     </div>
 
     <!-- 头像 -->
@@ -179,7 +183,16 @@
   </footer>
 
   <script>
+    let currentLang = "ja";
+
+    const modeLabels = {
+      ja: { light: "ライトモード", dark: "ダークモード" },
+      zh: { light: "浅色模式", dark: "深色模式" },
+      en: { light: "Light Mode", dark: "Dark Mode" }
+    };
+
     function switchLanguage(lang) {
+      currentLang = lang;
       const langs = ['ja', 'zh', 'en'];
       langs.forEach(code => {
         document.querySelectorAll(`#title-${code}, #content-${code}, #footer-${code}`).forEach(el => {
@@ -189,11 +202,23 @@
       document.querySelectorAll(`#title-${lang}, #content-${lang}, #footer-${lang}`).forEach(el => {
         el.classList.add('active');
       });
+      updateModeButton();
     }
 
     function toggleMode() {
-      document.body.classList.toggle('dark');
+      document.body.classList.toggle("dark");
+      updateModeButton();
     }
+
+    function updateModeButton() {
+      const isDark = document.body.classList.contains("dark");
+      const modeToggle = document.getElementById("modeToggle");
+      const label = isDark ? modeLabels[currentLang].light : modeLabels[currentLang].dark;
+      modeToggle.textContent = label;
+    }
+
+    // 初始设置
+    updateModeButton();
   </script>
 </body>
 </html>
