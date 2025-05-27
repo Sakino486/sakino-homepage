@@ -12,22 +12,6 @@
       --text-dark: #eee;
     }
 
-    /* 新增：平滑滚动和加载进度条样式 */
-    html {
-      scroll-behavior: smooth;
-    }
-
-    .loading-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 3px;
-      background: #9face6;
-      width: 0%;
-      transition: width 0.4s ease;
-      z-index: 999;
-    }
-
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -39,11 +23,28 @@
       transition: background 0.5s, color 0.5s;
       position: relative;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
     body.dark {
       background: var(--bg-dark);
       color: var(--text-dark);
+    }
+
+    .page {
+      position: absolute;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      pointer-events: none;
+    }
+
+    .page.active {
+      position: relative;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
     }
 
     @keyframes gradientBG {
@@ -52,33 +53,8 @@
       100% { background-position: 0% 50%; }
     }
 
-    @media (prefers-reduced-motion: no-preference) {
-      header {
-        padding: 4em 0 2em;
-        animation: fadeIn 2s forwards;
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-
-      main {
-        padding: 2em;
-        animation: fadeIn 3s forwards;
-        opacity: 0;
-        transform: translateY(20px);
-      }
-    }
-
-    footer {
-      background: rgba(0, 0, 0, 0.2);
-      font-size: 0.9em;
-      padding: 2em 1em 5em;
-    }
-
-    @keyframes fadeIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    header {
+      padding: 4em 0 2em;
     }
 
     img.avatar {
@@ -88,21 +64,22 @@
       object-fit: cover;
       margin-bottom: 1em;
       border: 3px solid rgba(255, 255, 255, 0.3);
+      transition: border-color 0.3s ease;
+    }
+
+    body.dark img.avatar {
+      border-color: rgba(255, 255, 255, 0.6);
     }
 
     .btn-group {
-      position: absolute;
+      position: fixed;
       bottom: 20px;
       left: 0;
       right: 0;
       display: flex;
       gap: 1em;
-      flex-wrap: wrap;
       justify-content: center;
-      width: 90%;
-      max-width: 400px;
-      margin: 0 auto;
-      padding: 0 10px;
+      z-index: 100;
     }
 
     .button {
@@ -113,6 +90,7 @@
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
     }
 
     .button:hover {
@@ -121,79 +99,28 @@
       transform: scale(1.05);
     }
 
-    body.dark .button:hover {
-      color: #000;
-    }
-
-    a {
-      display: inline-block;
-      margin: 1em;
-      padding: 0.8em 1.2em;
-      background-color: rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      color: #fff;
-      text-decoration: none;
-      transition: all 0.3s ease;
-    }
-
-    a:hover {
-      background-color: #fff;
-      color: #333;
-      transform: scale(1.05);
-    }
-
-    /* 新增下拉选择框样式 */
     .language-select {
       background-color: rgba(255, 255, 255, 0.1);
       color: #fff;
-      padding: 0.6em 1.2em;
+      padding: 0.6em 2.5em 0.6em 1.2em;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.3s ease;
       appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
       background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
       background-repeat: no-repeat;
       background-position: right 0.7em center;
       background-size: 1em;
-      padding-right: 2.5em;
     }
 
-    .language-select:hover {
-      background-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .language-select option {
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
-    }
+    /* 语言特定字体 */
+    #page-ja { font-family: 'Noto Sans JP', sans-serif; }
+    #page-zh { font-family: 'Noto Sans SC', sans-serif; }
+    #page-en { font-family: 'Segoe UI', sans-serif; }
   </style>
 </head>
 <body>
-  <!-- 新增加载进度条 -->
-  <div id="loading-bar" class="loading-bar"></div>
-
-  <header>
-    <h1 id="main-title">ようこそ、Sakinoの世界へ</h1>
-    <p id="subtitle">Welcome to Sakino’s Universe</p>
-    <img src="DSCF3007.JPG" alt="Avatar" class="avatar" />
-  </header>
-
-  <main>
-    <h2 id="intro-title">自己紹介</h2>
-    <p id="intro-content">私はSakino、夢とコードの狭間を旅する学生です。</p>
-
-    <h2 id="links-title">リンク</h2>
-    <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
-    <a href="https://example.com/blog" target="_blank">ブログ</a>
-  </main>
-
-  <footer>
-    &copy; 2025 Sakino. All rights reserved.
-  </footer>
-
+  <!-- 语言选择器 -->
   <div class="btn-group">
     <select class="language-select button" id="language-select">
       <option value="ja">日本語</option>
@@ -203,86 +130,155 @@
     <button id="theme-toggle" class="button">ダークモード</button>
   </div>
 
+  <!-- 日语页面 -->
+  <div id="page-ja" class="page active">
+    <header>
+      <h1>ようこそ、Sakinoの世界へ</h1>
+      <p>コードとデザインの融合</p>
+      <img src="DSCF3007.JPG" alt="アバター" class="avatar" loading="lazy" />
+    </header>
+    <main>
+      <section>
+        <h2>自己紹介</h2>
+        <p>東京を拠点に活動する学生エンジニアです。</p>
+        <p>Web開発とUIデザインに情熱を注いでいます。</p>
+      </section>
+      <section>
+        <h2>リンク</h2>
+        <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
+        <a href="https://example.com/ja" target="_blank">ブログ</a>
+      </section>
+    </main>
+    <footer>
+      <p>© 2025 Sakino. All Rights Reserved.</p>
+    </footer>
+  </div>
+
+  <!-- 中文页面 -->
+  <div id="page-zh" class="page">
+    <header>
+      <h1>欢迎来到Sakino的世界</h1>
+      <p>代码与设计的完美结合</p>
+      <img src="DSCF3007.JPG" alt="头像" class="avatar" loading="lazy" />
+    </header>
+    <main>
+      <section>
+        <h2>关于我</h2>
+        <p>一名热爱前端开发和UI设计的学生开发者。</p>
+        <p>目前专注于创造美观实用的数字体验。</p>
+      </section>
+      <section>
+        <h2>链接</h2>
+        <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
+        <a href="https://example.com/zh" target="_blank">博客</a>
+      </section>
+    </main>
+    <footer>
+      <p>© 2025 Sakino. 版权所有</p>
+    </footer>
+  </div>
+
+  <!-- 英文页面 -->
+  <div id="page-en" class="page">
+    <header>
+      <h1>Welcome to Sakino's World</h1>
+      <p>Where Code Meets Design</p>
+      <img src="DSCF3007.JPG" alt="Avatar" class="avatar" loading="lazy" />
+    </header>
+    <main>
+      <section>
+        <h2>About Me</h2>
+        <p>A student developer passionate about front-end and UI design.</p>
+        <p>Creating beautiful and functional digital experiences.</p>
+      </section>
+      <section>
+        <h2>Links</h2>
+        <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
+        <a href="https://example.com/en" target="_blank">Blog</a>
+      </section>
+    </main>
+    <footer>
+      <p>© 2025 Sakino. All Rights Reserved.</p>
+    </footer>
+  </div>
+
   <script>
-    // 页面加载进度条
-    window.addEventListener('load', () => {
-      const loadingBar = document.getElementById('loading-bar');
-      let width = 0;
-      const interval = setInterval(() => {
-        width += 10;
-        loadingBar.style.width = width + '%';
-        if (width >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            loadingBar.style.opacity = '0';
-          }, 300);
-        }
-      }, 50);
-    });
-
-    const texts = {
-      ja: {
-        title: "ようこそ、Sakinoの世界へ",
-        subtitle: "Welcome to Sakino’s Universe",
-        introTitle: "自己紹介",
-        introContent: "私はSakino、夢とコードの狭間を旅する学生です。",
-        linksTitle: "リンク",
-        themeBtn: "ダークモード",
-        languageName: "日本語"
-      },
-      zh: {
-        title: "欢迎来到 Sakino 的世界",
-        subtitle: "Welcome to Sakino’s Universe",
-        introTitle: "自我介绍",
-        introContent: "我是 Sakino，一个在梦与代码之间旅行的学生。",
-        linksTitle: "链接",
-        themeBtn: "深色模式",
-        languageName: "中文"
-      },
-      en: {
-        title: "Welcome to Sakino’s World",
-        subtitle: "Welcome to Sakino’s Universe",
-        introTitle: "About Me",
-        introContent: "I’m Sakino, a student traveling between dreams and code.",
-        linksTitle: "Links",
-        themeBtn: "Dark Mode",
-        languageName: "English"
+    document.addEventListener('DOMContentLoaded', () => {
+      // 初始化设置
+      const savedLang = localStorage.getItem('lang') || 'ja';
+      const isDark = localStorage.getItem('theme') === 'dark';
+      
+      // 设置初始语言和主题
+      setActiveLanguage(savedLang);
+      document.getElementById('language-select').value = savedLang;
+      
+      if (isDark) {
+        document.body.classList.add('dark');
+        updateThemeButtonText(savedLang, true);
       }
-    };
 
-    // 初始化语言和主题（从localStorage读取）
-    let currentLang = localStorage.getItem('lang') || 'ja';
-    const isDark = localStorage.getItem('theme') === 'dark';
-    if (isDark) document.body.classList.add('dark');
-    setLang(currentLang);
+      // 语言切换
+      document.getElementById('language-select').addEventListener('change', function() {
+        const lang = this.value;
+        setActiveLanguage(lang);
+        localStorage.setItem('lang', lang);
+        updatePageURL(lang);
+        updateThemeButtonText(lang, document.body.classList.contains('dark'));
+      });
 
-    // 设置下拉框初始值
-    document.getElementById('language-select').value = currentLang;
+      // 主题切换
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        const isNowDark = document.body.classList.toggle('dark');
+        localStorage.setItem('theme', isNowDark ? 'dark' : 'light');
+        
+        const currentLang = localStorage.getItem('lang') || 'ja';
+        updateThemeButtonText(currentLang, isNowDark);
+      });
 
-    function setLang(lang) {
-      currentLang = lang;
-      localStorage.setItem('lang', lang);
-      const t = texts[lang];
-      document.getElementById('main-title').textContent = t.title;
-      document.getElementById('subtitle').textContent = t.subtitle;
-      document.getElementById('intro-title').textContent = t.introTitle;
-      document.getElementById('intro-content').textContent = t.introContent;
-      document.getElementById('links-title').textContent = t.linksTitle;
-      document.getElementById('theme-toggle').textContent = t.themeBtn;
-      document.getElementById('language-select').value = lang;
-    }
+      // URL参数处理
+      const urlParams = new URLSearchParams(window.location.search);
+      const langParam = urlParams.get('lang');
+      if (['ja', 'zh', 'en'].includes(langParam)) {
+        setActiveLanguage(langParam);
+        document.getElementById('language-select').value = langParam;
+        localStorage.setItem('lang', langParam);
+      }
 
-    // 语言选择事件
-    document.getElementById('language-select').addEventListener('change', function() {
-      setLang(this.value);
-    });
+      // 设置活动语言
+      function setActiveLanguage(lang) {
+        document.querySelectorAll('.page').forEach(page => {
+          page.classList.remove('active');
+        });
+        document.getElementById(`page-${lang}`).classList.add('active');
+        document.documentElement.lang = lang;
+      }
 
-    // 主题切换（保存到localStorage）
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+      // 更新主题按钮文本
+      function updateThemeButtonText(lang, isDark) {
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.textContent = isDark ? 
+          (lang === 'zh' ? '浅色模式' : 
+           lang === 'en' ? 'Light Mode' : 'ライトモード') :
+          (lang === 'zh' ? '深色模式' : 
+           lang === 'en' ? 'Dark Mode' : 'ダークモード');
+      }
+
+      // 更新URL
+      function updatePageURL(lang) {
+        const newUrl = `${window.location.pathname}?lang=${lang}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      }
+
+      // 处理浏览器前进/后退
+      window.addEventListener('popstate', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const langParam = urlParams.get('lang') || 'ja';
+        setActiveLanguage(langParam);
+        document.getElementById('language-select').value = langParam;
+      });
     });
   </script>
 </body>
 </html>
+
 
