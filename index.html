@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sakino's Homepage</title>
   <style>
     :root {
@@ -10,8 +10,6 @@
       --bg-dark: linear-gradient(270deg, #232526, #414345);
       --text-light: #fff;
       --text-dark: #eee;
-      --card-light: rgba(255, 255, 255, 0.1);
-      --card-dark: rgba(0, 0, 0, 0.3);
     }
 
     body {
@@ -23,6 +21,7 @@
       color: var(--text-light);
       text-align: center;
       transition: background 0.5s, color 0.5s;
+      padding-bottom: 150px; /* 留出按钮空间 */
     }
 
     body.dark {
@@ -51,33 +50,9 @@
     }
 
     footer {
-      background: var(--card-light);
+      background: rgba(0, 0, 0, 0.2);
       font-size: 0.9em;
-      padding: 2em 1em 3em;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1em;
-    }
-    body.dark footer {
-      background: var(--card-dark);
-    }
-
-    a {
-      display: inline-block;
-      margin: 1em;
-      padding: 0.8em 1.2em;
-      background-color: rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      color: #fff;
-      text-decoration: none;
-      transition: all 0.3s ease;
-    }
-
-    a:hover {
-      background-color: #fff;
-      color: #333;
-      transform: scale(1.05);
+      padding: 2em 1em 5em;
     }
 
     @keyframes fadeIn {
@@ -96,7 +71,11 @@
       border: 3px solid rgba(255, 255, 255, 0.3);
     }
 
-    .switcher {
+    .btn-group {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
       gap: 1em;
       flex-wrap: wrap;
@@ -119,13 +98,25 @@
       transform: scale(1.05);
     }
 
-    select.button {
-      background-color: rgba(255, 255, 255, 0.1);
-      color: #fff;
-    }
-
     body.dark .button:hover {
       color: #000;
+    }
+
+    a {
+      display: inline-block;
+      margin: 1em;
+      padding: 0.8em 1.2em;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    a:hover {
+      background-color: #fff;
+      color: #333;
+      transform: scale(1.05);
     }
   </style>
 </head>
@@ -133,7 +124,7 @@
   <header>
     <h1 id="main-title">ようこそ、Sakinoの世界へ</h1>
     <p id="subtitle">Welcome to Sakino’s Universe</p>
-    <img src="DSCF3007.JPG" alt="Avatar" class="avatar"/>
+    <img src="DSCF3007.JPG" alt="Avatar" class="avatar" />
   </header>
 
   <main>
@@ -146,16 +137,15 @@
   </main>
 
   <footer>
-    <div class="switcher">
-      <select id="lang-select" class="button">
-        <option value="ja">日本語</option>
-        <option value="zh">中文</option>
-        <option value="en">English</option>
-      </select>
-      <button id="theme-toggle" class="button">ダークモード</button>
-    </div>
-    <div>&copy; 2025 Sakino. All rights reserved.</div>
+    &copy; 2025 Sakino. All rights reserved.
   </footer>
+
+  <div class="btn-group">
+    <button class="button" onclick="setLang('ja')">日本語</button>
+    <button class="button" onclick="setLang('zh')">中文</button>
+    <button class="button" onclick="setLang('en')">English</button>
+    <button id="theme-toggle" class="button">ダークモード</button>
+  </div>
 
   <script>
     const texts = {
@@ -165,7 +155,7 @@
         introTitle: "自己紹介",
         introContent: "私はSakino、夢とコードの狭間を旅する学生です。",
         linksTitle: "リンク",
-        themeBtn: "ダークモード",
+        themeBtn: "ダークモード"
       },
       zh: {
         title: "欢迎来到 Sakino 的世界",
@@ -173,7 +163,7 @@
         introTitle: "自我介绍",
         introContent: "我是 Sakino，一个在梦与代码之间旅行的学生。",
         linksTitle: "链接",
-        themeBtn: "深色模式",
+        themeBtn: "深色模式"
       },
       en: {
         title: "Welcome to Sakino’s World",
@@ -181,25 +171,24 @@
         introTitle: "About Me",
         introContent: "I’m Sakino, a student traveling between dreams and code.",
         linksTitle: "Links",
-        themeBtn: "Dark Mode",
+        themeBtn: "Dark Mode"
       }
     };
 
-    const langSelect = document.getElementById('lang-select');
-    const themeBtn = document.getElementById('theme-toggle');
+    let currentLang = 'ja';
 
-    langSelect.addEventListener('change', () => {
-      const lang = langSelect.value;
+    function setLang(lang) {
+      currentLang = lang;
       const t = texts[lang];
       document.getElementById('main-title').textContent = t.title;
       document.getElementById('subtitle').textContent = t.subtitle;
       document.getElementById('intro-title').textContent = t.introTitle;
       document.getElementById('intro-content').textContent = t.introContent;
       document.getElementById('links-title').textContent = t.linksTitle;
-      themeBtn.textContent = t.themeBtn;
-    });
+      document.getElementById('theme-toggle').textContent = t.themeBtn;
+    }
 
-    themeBtn.addEventListener('click', () => {
+    document.getElementById('theme-toggle').addEventListener('click', () => {
       document.body.classList.toggle('dark');
     });
   </script>
