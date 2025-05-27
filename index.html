@@ -52,7 +52,7 @@
     footer {
       background: var(--card-light);
       font-size: 0.9em;
-      padding: 1em;
+      padding: 1em 1em 2em;
       position: relative;
     }
 
@@ -83,6 +83,11 @@
       gap: 1em;
       padding-top: 1em;
       flex-wrap: wrap;
+      position: absolute;
+      bottom: 1em;
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
     }
 
     .switcher select,
@@ -100,6 +105,9 @@
       -webkit-appearance: none;
       -moz-appearance: none;
       position: relative;
+      min-width: 110px;
+      text-align: center;
+      user-select: none;
     }
 
     .switcher select:hover,
@@ -142,10 +150,8 @@
 </head>
 <body>
   <header>
-    <!-- 头像 -->
     <img src="DSCF3007.JPG" alt="Sakino's Photo" class="avatar" />
 
-    <!-- 欢迎语 -->
     <div id="title-ja" class="lang-content active">
       <h1>ようこそ、Sakinoの世界へ</h1>
       <p>夢とコードの狭間を旅する学生</p>
@@ -189,7 +195,7 @@
       &copy; 2025 Sakino. All rights reserved.
     </div>
 
-    <div class="switcher" style="margin-top: 1em;">
+    <div class="switcher">
       <select onchange="switchLanguage(this.value)" aria-label="Select Language">
         <option value="ja">日本語</option>
         <option value="zh">中文</option>
@@ -220,7 +226,6 @@
         el.classList.add('active');
       });
       updateModeButton();
-      // 同步下拉框选项值
       document.querySelector('select').value = lang;
     }
 
@@ -237,7 +242,7 @@
       modeToggle.textContent = label;
     }
 
-    // 初始设置
+    // 初始化按钮文本
     updateModeButton();
   </script>
 </body>
