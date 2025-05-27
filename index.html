@@ -35,18 +35,20 @@
       100% { background-position: 0% 50%; }
     }
 
-    header {
-      padding: 4em 0 2em;
-      animation: fadeIn 2s forwards;
-      opacity: 0;
-      transform: translateY(-20px);
-    }
+    @media (prefers-reduced-motion: no-preference) {
+      header {
+        padding: 4em 0 2em;
+        animation: fadeIn 2s forwards;
+        opacity: 0;
+        transform: translateY(-20px);
+      }
 
-    main {
-      padding: 2em;
-      animation: fadeIn 3s forwards;
-      opacity: 0;
-      transform: translateY(20px);
+      main {
+        padding: 2em;
+        animation: fadeIn 3s forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
     }
 
     footer {
@@ -80,6 +82,9 @@
       gap: 1em;
       flex-wrap: wrap;
       justify-content: center;
+      width: 90%;
+      max-width: 400px;
+      padding: 0 10px;
     }
 
     .button {
@@ -175,10 +180,15 @@
       }
     };
 
-    let currentLang = 'ja';
+    // 初始化语言和主题（从localStorage读取）
+    let currentLang = localStorage.getItem('lang') || 'ja';
+    const isDark = localStorage.getItem('theme') === 'dark';
+    if (isDark) document.body.classList.add('dark');
+    setLang(currentLang);
 
     function setLang(lang) {
       currentLang = lang;
+      localStorage.setItem('lang', lang);
       const t = texts[lang];
       document.getElementById('main-title').textContent = t.title;
       document.getElementById('subtitle').textContent = t.subtitle;
@@ -188,8 +198,10 @@
       document.getElementById('theme-toggle').textContent = t.themeBtn;
     }
 
+    // 主题切换（保存到localStorage）
     document.getElementById('theme-toggle').addEventListener('click', () => {
       document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     });
   </script>
 </body>
