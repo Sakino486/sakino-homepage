@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sakino's Homepage</title>
   <style>
     :root {
@@ -21,8 +21,9 @@
       color: var(--text-light);
       text-align: center;
       transition: background 0.5s, color 0.5s;
-      position: relative;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     body.dark {
@@ -36,33 +37,29 @@
       100% { background-position: 0% 50%; }
     }
 
-    @media (prefers-reduced-motion: no-preference) {
-      header {
-        padding: 4em 0 2em;
-        animation: fadeIn 2s forwards;
-        opacity: 0;
-        transform: translateY(-20px);
-      }
+    header {
+      padding: 4em 0 2em;
+      animation: fadeIn 2s forwards;
+      opacity: 0;
+      transform: translateY(-20px);
+    }
 
-      main {
-        padding: 2em;
-        animation: fadeIn 3s forwards;
-        opacity: 0;
-        transform: translateY(20px);
-      }
+    main {
+      padding: 2em;
+      animation: fadeIn 3s forwards;
+      opacity: 0;
+      transform: translateY(20px);
     }
 
     footer {
       background: rgba(0, 0, 0, 0.2);
       font-size: 0.9em;
-      padding: 2em 1em 5em;
+      padding: 2em 1em;
+      margin-top: auto;
     }
 
     @keyframes fadeIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     img.avatar {
@@ -75,18 +72,13 @@
     }
 
     .btn-group {
-      position: absolute;
-      bottom: 20px;
-      left: 0;
-      right: 0;
       display: flex;
       gap: 1em;
-      flex-wrap: wrap;
       justify-content: center;
-      width: 90%;
+      width: 100%;
       max-width: 400px;
-      margin: 0 auto;
-      padding: 0 10px;
+      margin: 20px auto;
+      padding: 0;
     }
 
     .button {
@@ -103,10 +95,6 @@
       background-color: #fff;
       color: #333;
       transform: scale(1.05);
-    }
-
-    body.dark .button:hover {
-      color: #000;
     }
 
     a {
@@ -126,32 +114,22 @@
       transform: scale(1.05);
     }
 
-    /* 新增下拉选择框样式 */
     .language-select {
       background-color: rgba(255, 255, 255, 0.1);
       color: #fff;
-      padding: 0.6em 1.2em;
+      padding: 0.6em 2.5em 0.6em 1.2em;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.3s ease;
       appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
       background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
       background-repeat: no-repeat;
       background-position: right 0.7em center;
       background-size: 1em;
-      padding-right: 2.5em;
     }
 
-    .language-select:hover {
-      background-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .language-select option {
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
+    @media (prefers-reduced-motion) {
+      header, main { animation: none; opacity: 1; transform: none; }
     }
   </style>
 </head>
@@ -159,24 +137,19 @@
   <header>
     <h1 id="main-title">ようこそ、Sakinoの世界へ</h1>
     <p id="subtitle">Welcome to Sakino’s Universe</p>
-    <img src="DSCF3007.JPG" alt="Avatar" class="avatar" />
+    <img src="DSCF3007.JPG" alt="Avatar" class="avatar">
   </header>
 
   <main>
     <h2 id="intro-title">自己紹介</h2>
     <p id="intro-content">私はSakino、夢とコードの狭間を旅する学生です。</p>
-
+    
     <h2 id="links-title">リンク</h2>
-    <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
-    <a href="https://example.com/blog" target="_blank">ブログ</a>
+    <a href="https://github.com/Sakino486" target="_blank" id="github-link">GitHub</a>
+    <a href="https://example.com/blog" target="_blank" id="blog-link">ブログ</a>
   </main>
 
-  <footer>
-    &copy; 2025 Sakino. All rights reserved.
-  </footer>
-
   <div class="btn-group">
-    <!-- 将三个按钮替换为下拉选择框 -->
     <select class="language-select button" id="language-select">
       <option value="ja">日本語</option>
       <option value="zh">中文</option>
@@ -185,69 +158,108 @@
     <button id="theme-toggle" class="button">ダークモード</button>
   </div>
 
+  <footer>
+    <p id="copyright-text">&copy; 2025 Sakino. All rights reserved.</p>
+  </footer>
+
   <script>
-    const texts = {
-      ja: {
-        title: "ようこそ、Sakinoの世界へ",
-        subtitle: "Welcome to Sakino’s Universe",
-        introTitle: "自己紹介",
-        introContent: "私はSakino、夢とコードの狭間を旅する学生です。",
-        linksTitle: "リンク",
-        themeBtn: "ダークモード",
-        languageName: "日本語"
+    // 配置数据（确保所有文本键名与元素ID对应）
+    const PAGE_CONFIG = {
+      texts: {
+        ja: {
+          'main-title': "ようこそ、Sakinoの世界へ",
+          'subtitle': "コードとデザインの融合",
+          'intro-title': "自己紹介",
+          'intro-content': "私はSakino、夢とコードの狭間を旅する学生です。",
+          'links-title': "リンク",
+          'github-link': "GitHub",
+          'blog-link': "技術ブログ",
+          'theme-toggle': "ダークモード",
+          'copyright-text': "© 2025 Sakino. 無断転載を禁じます"
+        },
+        zh: {
+          'main-title': "欢迎来到Sakino的世界",
+          'subtitle': "代码与设计的完美结合",
+          'intro-title': "关于我",
+          'intro-content': "我是Sakino，一个在梦与代码之间旅行的学生。",
+          'links-title': "链接",
+          'github-link': "GitHub",
+          'blog-link': "技术博客",
+          'theme-toggle': "深色模式",
+          'copyright-text': "© 2025 Sakino. 版权所有"
+        },
+        en: {
+          'main-title': "Welcome to Sakino's World",
+          'subtitle': "Where Code Meets Design",
+          'intro-title': "About Me",
+          'intro-content': "I'm Sakino, a student traveling between dreams and code.",
+          'links-title': "Links",
+          'github-link': "GitHub",
+          'blog-link': "Tech Blog",
+          'theme-toggle': "Dark Mode",
+          'copyright-text': "© 2025 Sakino. All Rights Reserved"
+        }
       },
-      zh: {
-        title: "欢迎来到 Sakino 的世界",
-        subtitle: "Welcome to Sakino’s Universe",
-        introTitle: "自我介绍",
-        introContent: "我是 Sakino，一个在梦与代码之间旅行的学生。",
-        linksTitle: "链接",
-        themeBtn: "深色模式",
-        languageName: "中文"
+      elements: [
+        'main-title', 'subtitle', 'intro-title', 'intro-content',
+        'links-title', 'github-link', 'blog-link', 'theme-toggle',
+        'copyright-text', 'language-select'
+      ]
+    };
+
+    // 核心控制器
+    const PageController = {
+      currentLang: localStorage.getItem('lang') || 'ja',
+
+      init() {
+        this.initTheme();
+        this.initLanguage();
+        this.bindEvents();
+        this.updateAllText();
       },
-      en: {
-        title: "Welcome to Sakino’s World",
-        subtitle: "Welcome to Sakino’s Universe",
-        introTitle: "About Me",
-        introContent: "I’m Sakino, a student traveling between dreams and code.",
-        linksTitle: "Links",
-        themeBtn: "Dark Mode",
-        languageName: "English"
+
+      initTheme() {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.body.classList.add('dark');
+        }
+      },
+
+      initLanguage() {
+        document.getElementById('language-select').value = this.currentLang;
+      },
+
+      bindEvents() {
+        // 语言切换
+        document.getElementById('language-select').addEventListener('change', (e) => {
+          this.currentLang = e.target.value;
+          localStorage.setItem('lang', this.currentLang);
+          this.updateAllText();
+        });
+
+        // 主题切换
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+          document.body.classList.toggle('dark');
+          localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        });
+      },
+
+      updateAllText() {
+        document.documentElement.lang = this.currentLang;
+        const currentTexts = PAGE_CONFIG.texts[this.currentLang];
+        
+        // 确保所有配置元素都更新
+        PAGE_CONFIG.elements.forEach(id => {
+          const element = document.getElementById(id);
+          if (element && currentTexts[id]) {
+            element.textContent = currentTexts[id];
+          }
+        });
       }
     };
 
-    // 初始化语言和主题（从localStorage读取）
-    let currentLang = localStorage.getItem('lang') || 'ja';
-    const isDark = localStorage.getItem('theme') === 'dark';
-    if (isDark) document.body.classList.add('dark');
-    setLang(currentLang);
-
-    // 设置下拉框初始值
-    document.getElementById('language-select').value = currentLang;
-
-    function setLang(lang) {
-      currentLang = lang;
-      localStorage.setItem('lang', lang);
-      const t = texts[lang];
-      document.getElementById('main-title').textContent = t.title;
-      document.getElementById('subtitle').textContent = t.subtitle;
-      document.getElementById('intro-title').textContent = t.introTitle;
-      document.getElementById('intro-content').textContent = t.introContent;
-      document.getElementById('links-title').textContent = t.linksTitle;
-      document.getElementById('theme-toggle').textContent = t.themeBtn;
-      document.getElementById('language-select').value = lang;
-    }
-
-    // 语言选择事件
-    document.getElementById('language-select').addEventListener('change', function() {
-      setLang(this.value);
-    });
-
-    // 主题切换（保存到localStorage）
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-    });
+    // 初始化页面
+    document.addEventListener('DOMContentLoaded', () => PageController.init());
   </script>
 </body>
 </html>
+
