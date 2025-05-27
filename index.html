@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sakino's Multilingual Portfolio" />
   <title>Sakino's Homepage</title>
   <style>
     :root {
@@ -21,12 +22,31 @@
       color: var(--text-light);
       text-align: center;
       transition: background 0.5s, color 0.5s;
-      padding-bottom: 150px; /* 留出按钮空间 */
+      position: relative;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
     body.dark {
       background: var(--bg-dark);
       color: var(--text-dark);
+    }
+
+    /* 页面切换动画 */
+    .page {
+      position: absolute;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      pointer-events: none;
+    }
+
+    .page.active {
+      position: relative;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
     }
 
     @keyframes gradientBG {
@@ -35,33 +55,8 @@
       100% { background-position: 0% 50%; }
     }
 
-    @media (prefers-reduced-motion: no-preference) {
-      header {
-        padding: 4em 0 2em;
-        animation: fadeIn 2s forwards;
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-
-      main {
-        padding: 2em;
-        animation: fadeIn 3s forwards;
-        opacity: 0;
-        transform: translateY(20px);
-      }
-    }
-
-    footer {
-      background: rgba(0, 0, 0, 0.2);
-      font-size: 0.9em;
-      padding: 2em 1em 5em;
-    }
-
-    @keyframes fadeIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    header {
+      padding: 4em 0 2em;
     }
 
     img.avatar {
@@ -71,20 +66,22 @@
       object-fit: cover;
       margin-bottom: 1em;
       border: 3px solid rgba(255, 255, 255, 0.3);
+      transition: border-color 0.3s ease;
+    }
+
+    body.dark img.avatar {
+      border-color: rgba(255, 255, 255, 0.6);
     }
 
     .btn-group {
       position: fixed;
       bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
+      right: 0;
       display: flex;
       gap: 1em;
-      flex-wrap: wrap;
       justify-content: center;
-      width: 90%;
-      max-width: 400px;
-      padding: 0 10px;
+      z-index: 100;
     }
 
     .button {
@@ -95,6 +92,7 @@
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
     }
 
     .button:hover {
@@ -103,106 +101,194 @@
       transform: scale(1.05);
     }
 
-    body.dark .button:hover {
-      color: #000;
-    }
-
-    a {
-      display: inline-block;
-      margin: 1em;
-      padding: 0.8em 1.2em;
+    .language-select {
       background-color: rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
       color: #fff;
-      text-decoration: none;
-      transition: all 0.3s ease;
+      padding: 0.6em 2.5em 0.6em 1.2em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.7em center;
+      background-size: 1em;
     }
 
-    a:hover {
-      background-color: #fff;
-      color: #333;
-      transform: scale(1.05);
-    }
+    /* 语言特定样式 */
+    #page-ja { font-family: 'Noto Sans JP', sans-serif; }
+    #page-zh { font-family: 'Noto Sans SC', sans-serif; }
+    #page-en { font-family: 'Segoe UI', sans-serif; }
   </style>
 </head>
 <body>
-  <header>
-    <h1 id="main-title">ようこそ、Sakinoの世界へ</h1>
-    <p id="subtitle">Welcome to Sakino’s Universe</p>
-    <img src="DSCF3007.JPG" alt="Avatar" class="avatar" />
-  </header>
-
-  <main>
-    <h2 id="intro-title">自己紹介</h2>
-    <p id="intro-content">私はSakino、夢とコードの狭間を旅する学生です。</p>
-
-    <h2 id="links-title">リンク</h2>
-    <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
-    <a href="https://example.com/blog" target="_blank">ブログ</a>
-  </main>
-
-  <footer>
-    &copy; 2025 Sakino. All rights reserved.
-  </footer>
-
+  <!-- 语言选择器 -->
   <div class="btn-group">
-    <button class="button" onclick="setLang('ja')">日本語</button>
-    <button class="button" onclick="setLang('zh')">中文</button>
-    <button class="button" onclick="setLang('en')">English</button>
-    <button id="theme-toggle" class="button">ダークモード</button>
+    <select class="language-select button" id="language-select">
+      <option value="ja">日本語</option>
+      <option value="zh">中文</option>
+      <option value="en">English</option>
+    </select>
+    <button id="theme-toggle" class="button" aria-label="Toggle dark mode">ダークモード</button>
+  </div>
+
+  <!-- 日语页面 -->
+  <div id="page-ja" class="page active">
+    <header>
+      <h1>ようこそ、Sakinoの世界へ</h1>
+      <p>東京から発信するクリエイティブなものづくり</p>
+      <img src="avatar-ja.jpg" alt="アバター" class="avatar" loading="lazy" />
+    </header>
+    <main>
+      <section>
+        <h2>自己紹介</h2>
+        <p>東京大学でコンピュータサイエンスを専攻する学生エンジニアです。</p>
+        <p>Web開発とAI技術に情熱を持っています。</p>
+      </section>
+      <section>
+        <h2>ポートフォリオ</h2>
+        <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
+        <a href="https://example.com/ja/blog" target="_blank">技術ブログ</a>
+      </section>
+    </main>
+    <footer>
+      <p>© 2025 Sakino. All Rights Reserved.</p>
+    </footer>
+  </div>
+
+  <!-- 中文页面 -->
+  <div id="page-zh" class="page">
+    <header>
+      <h1>欢迎来到Sakino的世界</h1>
+      <p>创造与代码的完美结合</p>
+      <img src="avatar-zh.jpg" alt="头像" class="avatar" loading="lazy" />
+    </header>
+    <main>
+      <section>
+        <h2>关于我</h2>
+        <p>一名热爱前端开发和人工智能的学生开发者。</p>
+        <p>目前在东京大学计算机科学专业学习。</p>
+      </section>
+      <section>
+        <h2>作品集</h2>
+        <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
+        <a href="https://example.com/zh/blog" target="_blank">技术博客</a>
+      </section>
+    </main>
+    <footer>
+      <p>© 2025 Sakino. 版权所有</p>
+    </footer>
+  </div>
+
+  <!-- 英文页面 -->
+  <div id="page-en" class="page">
+    <header>
+      <h1>Welcome to Sakino's World</h1>
+      <p>Where Creativity Meets Code</p>
+      <img src="avatar-en.jpg" alt="Avatar" class="avatar" loading="lazy" />
+    </header>
+    <main>
+      <section>
+        <h2>About Me</h2>
+        <p>Computer Science student at University of Tokyo.</p>
+        <p>Passionate about web development and AI technologies.</p>
+      </section>
+      <section>
+        <h2>Portfolio</h2>
+        <a href="https://github.com/Sakino486" target="_blank">GitHub</a>
+        <a href="https://example.com/en/blog" target="_blank">Tech Blog</a>
+      </section>
+    </main>
+    <footer>
+      <p>© 2025 Sakino. All Rights Reserved.</p>
+    </footer>
   </div>
 
   <script>
-    const texts = {
-      ja: {
-        title: "ようこそ、Sakinoの世界へ",
-        subtitle: "Welcome to Sakino’s Universe",
-        introTitle: "自己紹介",
-        introContent: "私はSakino、夢とコードの狭間を旅する学生です。",
-        linksTitle: "リンク",
-        themeBtn: "ダークモード"
-      },
-      zh: {
-        title: "欢迎来到 Sakino 的世界",
-        subtitle: "Welcome to Sakino’s Universe",
-        introTitle: "自我介绍",
-        introContent: "我是 Sakino，一个在梦与代码之间旅行的学生。",
-        linksTitle: "链接",
-        themeBtn: "深色模式"
-      },
-      en: {
-        title: "Welcome to Sakino’s World",
-        subtitle: "Welcome to Sakino’s Universe",
-        introTitle: "About Me",
-        introContent: "I’m Sakino, a student traveling between dreams and code.",
-        linksTitle: "Links",
-        themeBtn: "Dark Mode"
+    document.addEventListener('DOMContentLoaded', () => {
+      // 初始化设置
+      const savedLang = localStorage.getItem('lang') || 'ja';
+      const isDark = localStorage.getItem('theme') === 'dark';
+      
+      // 设置初始语言
+      setActiveLanguage(savedLang);
+      document.getElementById('language-select').value = savedLang;
+      
+      // 设置初始主题
+      if (isDark) {
+        document.body.classList.add('dark');
+        document.getElementById('theme-toggle').textContent = 
+          savedLang === 'zh' ? '浅色模式' : 
+          savedLang === 'en' ? 'Light Mode' : 'ライトモード';
       }
-    };
 
-    // 初始化语言和主题（从localStorage读取）
-    let currentLang = localStorage.getItem('lang') || 'ja';
-    const isDark = localStorage.getItem('theme') === 'dark';
-    if (isDark) document.body.classList.add('dark');
-    setLang(currentLang);
+      // 语言切换逻辑
+      document.getElementById('language-select').addEventListener('change', function() {
+        const lang = this.value;
+        setActiveLanguage(lang);
+        localStorage.setItem('lang', lang);
+        updateThemeButtonText(lang);
+        updatePageURL(lang);
+      });
 
-    function setLang(lang) {
-      currentLang = lang;
-      localStorage.setItem('lang', lang);
-      const t = texts[lang];
-      document.getElementById('main-title').textContent = t.title;
-      document.getElementById('subtitle').textContent = t.subtitle;
-      document.getElementById('intro-title').textContent = t.introTitle;
-      document.getElementById('intro-content').textContent = t.introContent;
-      document.getElementById('links-title').textContent = t.linksTitle;
-      document.getElementById('theme-toggle').textContent = t.themeBtn;
-    }
+      // 主题切换逻辑
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        const isNowDark = document.body.classList.toggle('dark');
+        localStorage.setItem('theme', isNowDark ? 'dark' : 'light');
+        
+        const currentLang = localStorage.getItem('lang') || 'ja';
+        document.getElementById('theme-toggle').textContent = 
+          isNowDark ? 
+            (currentLang === 'zh' ? '浅色模式' : 
+             currentLang === 'en' ? 'Light Mode' : 'ライトモード') :
+            (currentLang === 'zh' ? '深色模式' : 
+             currentLang === 'en' ? 'Dark Mode' : 'ダークモード');
+      });
 
-    // 主题切换（保存到localStorage）
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+      // 从URL参数读取语言设置
+      const urlParams = new URLSearchParams(window.location.search);
+      const langParam = urlParams.get('lang');
+      if (['ja', 'zh', 'en'].includes(langParam)) {
+        setActiveLanguage(langParam);
+        document.getElementById('language-select').value = langParam;
+        localStorage.setItem('lang', langParam);
+      }
+
+      // 设置活动语言页面
+      function setActiveLanguage(lang) {
+        document.querySelectorAll('.page').forEach(page => {
+          page.classList.remove('active');
+        });
+        document.getElementById(`page-${lang}`).classList.add('active');
+        document.documentElement.lang = lang;
+      }
+
+      // 更新主题按钮文本
+      function updateThemeButtonText(lang) {
+        const isDark = document.body.classList.contains('dark');
+        document.getElementById('theme-toggle').textContent = 
+          isDark ? 
+            (lang === 'zh' ? '浅色模式' : 
+             lang === 'en' ? 'Light Mode' : 'ライトモード') :
+            (lang === 'zh' ? '深色模式' : 
+             lang === 'en' ? 'Dark Mode' : 'ダークモード');
+      }
+
+      // 更新URL而不刷新页面
+      function updatePageURL(lang) {
+        const newUrl = `${window.location.pathname}?lang=${lang}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      }
+
+      // 处理浏览器前进/后退
+      window.addEventListener('popstate', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const langParam = urlParams.get('lang') || 'ja';
+        setActiveLanguage(langParam);
+        document.getElementById('language-select').value = langParam;
+      });
     });
   </script>
 </body>
 </html>
+
