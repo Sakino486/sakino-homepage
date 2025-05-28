@@ -32,6 +32,24 @@
       color: var(--text-dark);
     }
 
+    /* 添加字体描边 */
+    h1, h2, p, a, .button, .language-select, footer p {
+      text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    }
+
+    /* 减小按钮和链接的描边强度 */
+    .button, .language-select, a {
+      text-shadow: 
+        -0.5px -0.5px 0 #000,
+        0.5px -0.5px 0 #000,
+        -0.5px 0.5px 0 #000,
+        0.5px 0.5px 0 #000;
+    }
+
     .background-image {
       position: fixed;
       top: 0;
@@ -480,6 +498,7 @@
   </script>
 </body>
 </html>
+
 
 
 
