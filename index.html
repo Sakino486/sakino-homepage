@@ -311,7 +311,7 @@
         this.x = center.x;
         this.y = center.y;
         const angle = Math.random() * 2 * Math.PI;
-        const speed = Math.random() * 1 + 1;
+        const speed = attraction ? Math.random() * 1 + 1 : Math.random() * 3 + 3; // 鼠标离开时速度更快
         this.vx = Math.cos(angle) * speed * 2;
         this.vy = Math.sin(angle) * speed * 2;
         this.size = 12; // 统一大小扩大3倍
@@ -378,10 +378,14 @@
 
     avatar.addEventListener("mouseenter", () => {
       attraction = true;
+      // 鼠标进入时重置所有粒子，使它们立即开始吸引
+      particles.forEach(p => p.reset());
     });
 
     avatar.addEventListener("mouseleave", () => {
       attraction = false;
+      // 鼠标离开时重置所有粒子，使它们立即以更快的速度辐射
+      particles.forEach(p => p.reset());
     });
 
     window.addEventListener("resize", () => {
@@ -396,5 +400,6 @@
   </script>
 </body>
 </html>
+
 
 
