@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,6 +42,7 @@
       animation: fadeIn 2s forwards;
       opacity: 0;
       transform: translateY(-20px);
+      position: relative;
     }
 
     main {
@@ -66,13 +67,29 @@
       header, main { animation: none; opacity: 1; transform: none; }
     }
 
+    #avatar-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    canvas#particle-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 180px;
+      height: 180px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
     img.avatar {
       width: 180px;
       height: 180px;
       border-radius: 50%;
       object-fit: cover;
-      margin-bottom: 1em;
       border: 3px solid rgba(255, 255, 255, 0.3);
+      position: relative;
+      z-index: 1;
     }
 
     .btn-group {
@@ -82,7 +99,6 @@
       width: 100%;
       max-width: 400px;
       margin: 20px auto;
-      padding: 0;
     }
 
     .button {
@@ -126,7 +142,7 @@
       border-radius: 8px;
       cursor: pointer;
       appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
       background-repeat: no-repeat;
       background-position: right 0.7em center;
       background-size: 1em;
@@ -137,13 +153,15 @@
   <header>
     <h1 data-i18n="title"></h1>
     <p data-i18n="subtitle"></p>
-    <img src="Sakino.JPG" alt="Avatar" class="avatar">
+    <div id="avatar-container">
+      <canvas id="particle-canvas" width="180" height="180"></canvas>
+      <img src="Sakino.JPG" alt="Avatar" class="avatar">
+    </div>
   </header>
 
   <main>
     <h2 data-i18n="introTitle"></h2>
     <p data-i18n="introContent"></p>
-    
     <h2 data-i18n="linksTitle"></h2>
     <a href="https://github.com/Sakino486" target="_blank" data-i18n="githubLink"></a>
     <a href="https://example.com/blog" target="_blank" data-i18n="blogLink"></a>
@@ -243,14 +261,10 @@
 
       updateAllContent() {
         const content = APP_CONFIG.languages[this.lang].content;
-        
-        // 更新常规文本
         document.querySelectorAll('[data-i18n]').forEach(el => {
           const key = el.dataset.i18n;
           if (key !== 'themeBtn') el.textContent = content[key];
         });
-
-        // 更新主题按钮
         this.updateThemeButton();
       }
 
@@ -261,14 +275,12 @@
       }
 
       bindEvents() {
-        // 语言切换
         document.getElementById('language-select').addEventListener('change', e => {
           this.lang = e.target.value;
           localStorage.setItem('lang', this.lang);
           this.updateAllContent();
         });
 
-        // 主题切换
         document.getElementById('theme-toggle').addEventListener('click', () => {
           this.isDarkMode = !this.isDarkMode;
           localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
@@ -278,76 +290,66 @@
       }
     }
 
-    // 初始化应用
     new AppController();
-    // === 粒子效果逻辑 ===
-const canvas = document.getElementById("particle-canvas");
-const ctx = canvas.getContext("2d");
-const particles = [];
-const center = { x: canvas.width / 2, y: canvas.height / 2 };
-const PARTICLE_COUNT = 80;
-let attraction = false;
 
-// 粒子类定义
-class Particle {
-  constructor() {
-    this.reset();
-  }
+    // 粒子效果
+    const canvas = document.getElementById("particle-canvas");
+    const ctx = canvas.getContext("2d");
+    const particles = [];
+    const PARTICLE_COUNT = 80;
+    let attraction = false;
+    const center = { x: canvas.width / 2, y: canvas.height / 2 };
 
-  reset() {
-    const angle = Math.random() * 2 * Math.PI;
-    const radius = 80;
-    this.x = center.x + Math.cos(angle) * radius;
-    this.y = center.y + Math.sin(angle) * radius;
-    this.vx = Math.cos(angle) * (Math.random() * 0.5 + 0.5);
-    this.vy = Math.sin(angle) * (Math.random() * 0.5 + 0.5);
-    this.alpha = 1;
-    this.size = Math.random() * 2 + 1;
-  }
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        const angle = Math.random() * 2 * Math.PI;
+        const radius = 80;
+        this.x = center.x + Math.cos(angle) * radius;
+        this.y = center.y + Math.sin(angle) * radius;
+        this.vx = Math.cos(angle) * (Math.random() * 0.5 + 0.5);
+        this.vy = Math.sin(angle) * (Math.random() * 0.5 + 0.5);
+        this.alpha = 1;
+        this.size = Math.random() * 2 + 1;
+      }
+      update() {
+        const dx = center.x - this.x;
+        const dy = center.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const accel = attraction ? 0.02 : -0.02;
+        this.vx += accel * (dx / dist);
+        this.vy += accel * (dy / dist);
+        this.x += this.vx;
+        this.y += this.vy;
+        this.alpha -= 0.005;
+        if (this.alpha <= 0) this.reset();
+      }
+      draw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
+        ctx.fillStyle = `rgba(255,255,255,${this.alpha})`;
+        ctx.fill();
+      }
+    }
 
-  update() {
-    const dx = center.x - this.x;
-    const dy = center.y - this.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const accel = attraction ? 0.02 : -0.02;
-    this.vx += accel * (dx / dist);
-    this.vy += accel * (dy / dist);
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push(new Particle());
+    }
 
-    this.x += this.vx;
-    this.y += this.vy;
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw(ctx);
+      });
+      requestAnimationFrame(animate);
+    }
 
-    this.alpha -= 0.005;
-    if (this.alpha <= 0) this.reset();
-  }
+    animate();
 
-  draw(ctx) {
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
-    ctx.fillStyle = `rgba(255,255,255,${this.alpha})`;
-    ctx.fill();
-  }
-}
-
-// 初始化粒子
-for (let i = 0; i < PARTICLE_COUNT; i++) {
-  particles.push(new Particle());
-}
-
-// 动画帧循环
-function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  particles.forEach(p => {
-    p.update();
-    p.draw(ctx);
-  });
-  requestAnimationFrame(animate);
-}
-animate();
-
-// 鼠标事件监听
-const avatar = document.querySelector("#avatar-container");
-avatar.addEventListener("mouseenter", () => { attraction = true; });
-avatar.addEventListener("mouseleave", () => { attraction = false; });
+    const avatar = document.querySelector("#avatar-container");
+    avatar.addEventListener("mouseenter", () => { attraction = true; });
+    avatar.addEventListener("mouseleave", () => { attraction = false; });
   </script>
 </body>
 </html>
