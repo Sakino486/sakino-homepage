@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sakino's Homepage</title>
   <style>
     :root {
@@ -87,6 +87,7 @@
       height: 180px;
       border-radius: 50%;
       object-fit: cover;
+      margin-bottom: 1em;
       border: 3px solid rgba(255, 255, 255, 0.3);
       position: relative;
       z-index: 1;
@@ -99,6 +100,7 @@
       width: 100%;
       max-width: 400px;
       margin: 20px auto;
+      padding: 0;
     }
 
     .button {
@@ -142,7 +144,7 @@
       border-radius: 8px;
       cursor: pointer;
       appearance: none;
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
       background-repeat: no-repeat;
       background-position: right 0.7em center;
       background-size: 1em;
@@ -155,13 +157,14 @@
     <p data-i18n="subtitle"></p>
     <div id="avatar-container">
       <canvas id="particle-canvas" width="180" height="180"></canvas>
-      <img src="Sakino.JPG" alt="Avatar" class="avatar">
+      <img src="Sakino.JPG" alt="Avatar" class="avatar" />
     </div>
   </header>
 
   <main>
     <h2 data-i18n="introTitle"></h2>
     <p data-i18n="introContent"></p>
+    
     <h2 data-i18n="linksTitle"></h2>
     <a href="https://github.com/Sakino486" target="_blank" data-i18n="githubLink"></a>
     <a href="https://example.com/blog" target="_blank" data-i18n="blogLink"></a>
@@ -280,7 +283,6 @@
           localStorage.setItem('lang', this.lang);
           this.updateAllContent();
         });
-
         document.getElementById('theme-toggle').addEventListener('click', () => {
           this.isDarkMode = !this.isDarkMode;
           localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
@@ -292,38 +294,43 @@
 
     new AppController();
 
-    // 粒子效果
+    // 粒子特效逻辑
     const canvas = document.getElementById("particle-canvas");
     const ctx = canvas.getContext("2d");
     const particles = [];
-    const PARTICLE_COUNT = 80;
-    let attraction = false;
     const center = { x: canvas.width / 2, y: canvas.height / 2 };
+    const PARTICLE_COUNT = 160;
+    let attraction = false;
 
     class Particle {
       constructor() { this.reset(); }
+
       reset() {
         const angle = Math.random() * 2 * Math.PI;
-        const radius = 80;
+        const radius = 150; // 更远
         this.x = center.x + Math.cos(angle) * radius;
         this.y = center.y + Math.sin(angle) * radius;
-        this.vx = Math.cos(angle) * (Math.random() * 0.5 + 0.5);
-        this.vy = Math.sin(angle) * (Math.random() * 0.5 + 0.5);
+        this.vx = Math.cos(angle) * (Math.random() * 1.2 + 0.8);
+        this.vy = Math.sin(angle) * (Math.random() * 1.2 + 0.8);
         this.alpha = 1;
         this.size = Math.random() * 2 + 1;
       }
+
       update() {
         const dx = center.x - this.x;
         const dy = center.y - this.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const accel = attraction ? 0.02 : -0.02;
+        const accel = attraction ? 0.05 : -0.03;
         this.vx += accel * (dx / dist);
         this.vy += accel * (dy / dist);
+
         this.x += this.vx;
         this.y += this.vy;
-        this.alpha -= 0.005;
+
+        this.alpha -= 0.008;
         if (this.alpha <= 0) this.reset();
       }
+
       draw(ctx) {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
@@ -344,12 +351,14 @@
       });
       requestAnimationFrame(animate);
     }
-
     animate();
 
-    const avatar = document.querySelector("#avatar-container");
-    avatar.addEventListener("mouseenter", () => { attraction = true; });
-    avatar.addEventListener("mouseleave", () => { attraction = false; });
+    document.getElementById("avatar-container").addEventListener("mouseenter", () => {
+      attraction = true;
+    });
+    document.getElementById("avatar-container").addEventListener("mouseleave", () => {
+      attraction = false;
+    });
   </script>
 </body>
 </html>
