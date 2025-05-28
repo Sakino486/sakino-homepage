@@ -32,22 +32,17 @@
       color: var(--text-dark);
     }
 
-    /* 添加字体描边 */
-    h1, h2, p, a, .button, .language-select, footer p {
+    /* 优化后的平滑文字描边 */
+    h1, h2, p, footer p {
       text-shadow: 
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;
+        0 0 1px rgba(0, 0, 0, 0.7),
+        0 0 0.5px rgba(0, 0, 0, 0.9);
     }
 
-    /* 减小按钮和链接的描边强度 */
+    /* 更精细的按钮和链接描边 */
     .button, .language-select, a {
       text-shadow: 
-        -0.5px -0.5px 0 #000,
-        0.5px -0.5px 0 #000,
-        -0.5px 0.5px 0 #000,
-        0.5px 0.5px 0 #000;
+        0 0 0.7px rgba(0, 0, 0, 0.8);
     }
 
     .background-image {
@@ -281,7 +276,7 @@
         this.applyTheme();
         this.updateAllContent();
         this.bindEvents();
-        this.updateBackground(); // 初始化背景
+        this.updateBackground();
       }
 
       renderLanguageOptions() {
@@ -303,7 +298,7 @@
           if (key !== 'themeBtn') el.textContent = content[key];
         });
         this.updateThemeButton();
-        this.updateBackground(); // 语言切换时更新背景
+        this.updateBackground();
       }
 
       updateThemeButton() {
@@ -313,12 +308,10 @@
       }
 
       updateBackground() {
-        // 隐藏所有背景图片
         document.querySelectorAll('.background-image').forEach(img => {
           img.classList.remove('active');
         });
         
-        // 显示当前语言的背景图片
         const bgId = APP_CONFIG.languages[this.lang].content.background;
         const bgElement = document.getElementById(bgId);
         if (bgElement) {
@@ -344,7 +337,7 @@
 
     new AppController();
 
-    // 粒子特效调整后的代码
+    // 粒子特效
     const canvas = document.getElementById("particle-canvas");
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
@@ -352,7 +345,6 @@
     const avatar = document.querySelector(".avatar");
     const avatarContainer = document.querySelector("#avatar-container");
     
-    // 获取圆形头像的中心和半径
     let rect = avatar.getBoundingClientRect();
     let center = {
       x: rect.left + rect.width / 2,
@@ -364,7 +356,6 @@
     let emitParticles = true;
     const colors = ["#5396A1", "#FDE6DC", "#FEB396"];
 
-    // 检测鼠标是否在圆形区域内
     function isMouseInAvatarCircle(clientX, clientY) {
       const dx = clientX - center.x;
       const dy = clientY - center.y;
@@ -376,7 +367,7 @@
       constructor() {
         this.reset();
         this.lifetime = 0;
-        this.maxLifetime = 10 * 60; // 10秒（假设60fps）
+        this.maxLifetime = 10 * 60;
       }
 
       reset() {
@@ -399,7 +390,6 @@
         const dist = Math.sqrt(dx * dx + dy * dy);
         
         if (attraction) {
-          // 鼠标在头像区域内，粒子返回中心
           const accel = 0.1;
           this.vx += accel * (dx / dist);
           this.vy += accel * (dy / dist);
@@ -453,12 +443,10 @@
 
     animate();
 
-    // 使用mousemove事件更精确检测圆形区域
     document.addEventListener("mousemove", (e) => {
       const isInside = isMouseInAvatarCircle(e.clientX, e.clientY);
       
       if (isInside && !attraction) {
-        // 鼠标刚进入圆形区域
         attraction = true;
         emitParticles = false;
         
@@ -474,7 +462,6 @@
           }
         });
       } else if (!isInside && attraction) {
-        // 鼠标刚离开圆形区域
         attraction = false;
         emitParticles = true;
         
@@ -498,6 +485,7 @@
   </script>
 </body>
 </html>
+
 
 
 
