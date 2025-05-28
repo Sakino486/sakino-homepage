@@ -70,16 +70,18 @@
     #avatar-container {
       position: relative;
       display: inline-block;
+      width: 180px;
+      height: 180px;
     }
 
     canvas#particle-canvas {
-      position: fixed;
+      position: absolute;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      z-index: 0;
       pointer-events: none;
+      z-index: 0;
     }
 
     img.avatar {
@@ -154,9 +156,9 @@
     <h1 data-i18n="title"></h1>
     <p data-i18n="subtitle"></p>
     <div id="avatar-container">
-      <canvas id="particle-canvas"></canvas>
       <img src="Sakino.JPG" alt="Avatar" class="avatar">
     </div>
+    <canvas id="particle-canvas"></canvas>
   </header>
 
   <main>
@@ -189,10 +191,7 @@
             linksTitle: "リンク",
             githubLink: "GitHub",
             blogLink: "技術ブログ",
-            themeBtn: {
-              light: "ダークモード",
-              dark: "ライトモード"
-            },
+            themeBtn: { light: "ダークモード", dark: "ライトモード" },
             copyright: "© 2025 Sakino. 無断転載を禁じます"
           }
         },
@@ -206,10 +205,7 @@
             linksTitle: "链接",
             githubLink: "GitHub",
             blogLink: "技术博客",
-            themeBtn: {
-              light: "深色模式",
-              dark: "浅色模式"
-            },
+            themeBtn: { light: "深色模式", dark: "浅色模式" },
             copyright: "© 2025 Sakino. 版权所有"
           }
         },
@@ -223,10 +219,7 @@
             linksTitle: "Links",
             githubLink: "GitHub",
             blogLink: "Tech Blog",
-            themeBtn: {
-              light: "Dark Mode",
-              dark: "Light Mode"
-            },
+            themeBtn: { light: "Dark Mode", dark: "Light Mode" },
             copyright: "© 2025 Sakino. All Rights Reserved"
           }
         }
@@ -292,54 +285,85 @@
 
     new AppController();
 
-    // 粒子效果（彩虹色 + 发光 + 全屏 + 加速）
+    // 粒子特效调整后的代码
     const canvas = document.getElementById("particle-canvas");
+    const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const ctx = canvas.getContext("2d");
-    const particles = [];
-    const PARTICLE_COUNT = 120;
+    const avatar = document.querySelector("#avatar-container");
+    let rect = avatar.getBoundingClientRect();
+    let center = {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2
+    };
+
     let attraction = false;
-    const center = { x: canvas.width / 2, y: canvas.height / 2 };
+    const colors = ["#5396A1", "#FDE6DC", "#FEB396"];
 
     class Particle {
-      constructor() { this.reset(); }
-      reset() {
-        const angle = Math.random() * 2 * Math.PI;
-        const radius = Math.random() * Math.min(canvas.width, canvas.height) / 2;
-        this.x = center.x + Math.cos(angle) * radius;
-        this.y = center.y + Math.sin(angle) * radius;
-        this.vx = Math.cos(angle) * (Math.random() * 1 + 1); // 加速2倍
-        this.vy = Math.sin(angle) * (Math.random() * 1 + 1);
-        this.alpha = 1;
-        this.size = Math.random() * 3 + 1;
-        this.hue = Math.random() * 360;
+      constructor() {
+        this.reset();
+        this.lifetime = 0;
+        this.maxLifetime = 10 * 60; // 10秒（假设60fps）
       }
+
+      reset() {
+        this.x = center.x;
+        this.y = center.y;
+        const angle = Math.random() * 2 * Math.PI;
+        const speed = Math.random() * 1 + 1;
+        this.vx = Math.cos(angle) * speed * 2;
+        this.vy = Math.sin(angle) * speed * 2;
+        this.size = 12; // 统一大小扩大3倍
+        this.alpha = 1;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.returning = false;
+        this.lifetime = 0;
+      }
+
       update() {
         const dx = center.x - this.x;
         const dy = center.y - this.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const accel = attraction ? 0.04 : -0.04;
-        this.vx += accel * (dx / dist);
-        this.vy += accel * (dy / dist);
+        const accel = attraction ? 0.1 : -0.05;
+
+        if (!this.returning && attraction) {
+          this.vx += accel * (dx / dist);
+          this.vy += accel * (dy / dist);
+        }
+
         this.x += this.vx;
         this.y += this.vy;
-        this.alpha -= 0.005;
-        if (this.alpha <= 0) this.reset();
+        this.lifetime++;
+
+        if (attraction && dist < 10 && !this.returning) {
+          this.returning = true;
+          this.vx = 0;
+          this.vy = 0;
+        }
+
+        if (this.lifetime >= this.maxLifetime) {
+          this.alpha = 0;
+        } else {
+          this.alpha = 1 - (this.lifetime / this.maxLifetime);
+        }
+
+        if (this.alpha <= 0 || this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+          this.reset();
+        }
       }
+
       draw(ctx) {
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
-        ctx.shadowColor = `hsla(${this.hue}, 100%, 70%, ${this.alpha})`;
-        ctx.shadowBlur = 12;
-        ctx.fillStyle = `hsla(${this.hue}, 100%, 70%, ${this.alpha})`;
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.alpha;
         ctx.fill();
+        ctx.globalAlpha = 1;
       }
     }
 
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      particles.push(new Particle());
-    }
+    const particles = Array.from({ length: 100 }, () => new Particle());
 
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -352,17 +376,25 @@
 
     animate();
 
-    const avatar = document.querySelector("#avatar-container");
-    avatar.addEventListener("mouseenter", () => { attraction = true; });
-    avatar.addEventListener("mouseleave", () => { attraction = false; });
+    avatar.addEventListener("mouseenter", () => {
+      attraction = true;
+    });
+
+    avatar.addEventListener("mouseleave", () => {
+      attraction = false;
+    });
 
     window.addEventListener("resize", () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      center.x = canvas.width / 2;
-      center.y = canvas.height / 2;
+      rect = avatar.getBoundingClientRect();
+      center = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
     });
   </script>
 </body>
 </html>
+
 
