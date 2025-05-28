@@ -280,6 +280,74 @@
 
     // 初始化应用
     new AppController();
+    // === 粒子效果逻辑 ===
+const canvas = document.getElementById("particle-canvas");
+const ctx = canvas.getContext("2d");
+const particles = [];
+const center = { x: canvas.width / 2, y: canvas.height / 2 };
+const PARTICLE_COUNT = 80;
+let attraction = false;
+
+// 粒子类定义
+class Particle {
+  constructor() {
+    this.reset();
+  }
+
+  reset() {
+    const angle = Math.random() * 2 * Math.PI;
+    const radius = 80;
+    this.x = center.x + Math.cos(angle) * radius;
+    this.y = center.y + Math.sin(angle) * radius;
+    this.vx = Math.cos(angle) * (Math.random() * 0.5 + 0.5);
+    this.vy = Math.sin(angle) * (Math.random() * 0.5 + 0.5);
+    this.alpha = 1;
+    this.size = Math.random() * 2 + 1;
+  }
+
+  update() {
+    const dx = center.x - this.x;
+    const dy = center.y - this.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const accel = attraction ? 0.02 : -0.02;
+    this.vx += accel * (dx / dist);
+    this.vy += accel * (dy / dist);
+
+    this.x += this.vx;
+    this.y += this.vy;
+
+    this.alpha -= 0.005;
+    if (this.alpha <= 0) this.reset();
+  }
+
+  draw(ctx) {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(255,255,255,${this.alpha})`;
+    ctx.fill();
+  }
+}
+
+// 初始化粒子
+for (let i = 0; i < PARTICLE_COUNT; i++) {
+  particles.push(new Particle());
+}
+
+// 动画帧循环
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.update();
+    p.draw(ctx);
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+
+// 鼠标事件监听
+const avatar = document.querySelector("#avatar-container");
+avatar.addEventListener("mouseenter", () => { attraction = true; });
+avatar.addEventListener("mouseleave", () => { attraction = false; });
   </script>
 </body>
 </html>
