@@ -290,16 +290,28 @@
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const avatar = document.querySelector("#avatar-container");
+    const avatar = document.querySelector(".avatar");
+    const avatarContainer = document.querySelector("#avatar-container");
+    
+    // 获取圆形头像的中心和半径
     let rect = avatar.getBoundingClientRect();
     let center = {
       x: rect.left + rect.width / 2,
       y: rect.top + rect.height / 2
     };
+    const avatarRadius = rect.width / 2;
 
     let attraction = false;
-    let emitParticles = true; // 控制是否发射新粒子
+    let emitParticles = true;
     const colors = ["#5396A1", "#FDE6DC", "#FEB396"];
+
+    // 检测鼠标是否在圆形区域内
+    function isMouseInAvatarCircle(clientX, clientY) {
+      const dx = clientX - center.x;
+      const dy = clientY - center.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return distance <= avatarRadius;
+    }
 
     class Particle {
       constructor() {
@@ -312,7 +324,7 @@
         this.x = center.x;
         this.y = center.y;
         const angle = Math.random() * 2 * Math.PI;
-        const speed = Math.random() * 3 + 3; // 固定辐射速度
+        const speed = Math.random() * 3 + 3;
         this.vx = Math.cos(angle) * speed;
         this.vy = Math.sin(angle) * speed;
         this.size = 12;
@@ -351,10 +363,10 @@
         }
 
         if (this.alpha <= 0 || this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
-          if (!attraction && emitParticles) { // 只有不在吸引状态且允许发射时才重置
+          if (!attraction && emitParticles) {
             this.reset();
           } else {
-            this.alpha = 0; // 否则让粒子消失
+            this.alpha = 0;
           }
         }
       }
@@ -382,34 +394,37 @@
 
     animate();
 
-    avatar.addEventListener("mouseenter", () => {
-      attraction = true;
-      emitParticles = false; // 暂停新粒子辐射
+    // 使用mousemove事件更精确检测圆形区域
+    document.addEventListener("mousemove", (e) => {
+      const isInside = isMouseInAvatarCircle(e.clientX, e.clientY);
       
-      // 让所有粒子立即返回中心
-      particles.forEach(p => {
-        if (p.alpha > 0) {
-          const dx = center.x - p.x;
-          const dy = center.y - p.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const speed = Math.random() * 2 + 2; // 返回速度
-          p.vx = (dx / dist) * speed;
-          p.vy = (dy / dist) * speed;
-          p.returning = false;
-        }
-      });
-    });
-
-    avatar.addEventListener("mouseleave", () => {
-      attraction = false;
-      emitParticles = true; // 恢复新粒子辐射
-      
-      // 重置所有可见粒子，让它们立即开始辐射
-      particles.forEach(p => {
-        if (p.alpha > 0) {
-          p.reset();
-        }
-      });
+      if (isInside && !attraction) {
+        // 鼠标刚进入圆形区域
+        attraction = true;
+        emitParticles = false;
+        
+        particles.forEach(p => {
+          if (p.alpha > 0) {
+            const dx = center.x - p.x;
+            const dy = center.y - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const speed = Math.random() * 2 + 2;
+            p.vx = (dx / dist) * speed;
+            p.vy = (dy / dist) * speed;
+            p.returning = false;
+          }
+        });
+      } else if (!isInside && attraction) {
+        // 鼠标刚离开圆形区域
+        attraction = false;
+        emitParticles = true;
+        
+        particles.forEach(p => {
+          if (p.alpha > 0) {
+            p.reset();
+          }
+        });
+      }
     });
 
     window.addEventListener("resize", () => {
@@ -424,6 +439,7 @@
   </script>
 </body>
 </html>
+
 
 
 
