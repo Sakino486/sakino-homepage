@@ -1,373 +1,222 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sakino's Homepage</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Personal Homepage</title>
   <style>
     :root {
-      --bg-light: linear-gradient(270deg, #74ebd5, #9face6);
-      --bg-dark: linear-gradient(270deg, #232526, #414345);
-      --text-light: #fff;
-      --text-dark: #eee;
+      --primary-color: #3498db;
+      --bg-light: #ffffff;
+      --bg-dark: #1e1e1e;
+      --text-light: #ffffff;
+      --text-dark: #000000;
     }
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--bg-light);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-      color: var(--text-light);
-      text-align: center;
-      transition: background 0.5s, color 0.5s;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    body.dark {
-      background: var(--bg-dark);
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-light);
       color: var(--text-dark);
+      transition: background-color 0.3s, color 0.3s;
     }
 
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    .dark-mode {
+      background-color: var(--bg-dark);
+      color: var(--text-light);
     }
 
     header {
-      padding: 4em 0 2em;
-      animation: fadeIn 2s forwards;
-      opacity: 0;
-      transform: translateY(-20px);
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .language-switcher, .theme-switcher {
+      margin: 0 0.5rem;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .switcher-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .avatar-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      margin: 2rem auto;
+      border-radius: 50%;
+      overflow: hidden;
+      z-index: 2;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+      animation: rainbowGlow 6s linear infinite;
+    }
+
+    @keyframes rainbowGlow {
+      0% { box-shadow: 0 0 20px #ff0000; }
+      16% { box-shadow: 0 0 20px #ffa500; }
+      33% { box-shadow: 0 0 20px #ffff00; }
+      50% { box-shadow: 0 0 20px #00ff00; }
+      66% { box-shadow: 0 0 20px #00ffff; }
+      83% { box-shadow: 0 0 20px #0000ff; }
+      100% { box-shadow: 0 0 20px #ff00ff; }
+    }
+
+    .avatar-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      z-index: 2;
       position: relative;
     }
 
-    main {
-      padding: 2em;
-      animation: fadeIn 3s forwards;
-      opacity: 0;
-      transform: translateY(20px);
-    }
-
-    footer {
-      background: rgba(0, 0, 0, 0.2);
-      font-size: 0.9em;
-      padding: 2em 1em;
-      margin-top: auto;
-    }
-
-    @keyframes fadeIn {
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (prefers-reduced-motion) {
-      header, main { animation: none; opacity: 1; transform: none; }
-    }
-
-    #avatar-container {
-      position: relative;
-      display: inline-block;
-      width: 180px;
-      height: 180px;
-    }
-
-    canvas#particle-canvas {
-      position: absolute;
+    #particles-canvas {
+      position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    img.avatar {
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      position: relative;
       z-index: 1;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 1em;
-      justify-content: center;
-      width: 100%;
-      max-width: 400px;
-      margin: 20px auto;
-    }
-
-    .button {
-      background-color: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      padding: 0.6em 1.2em;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .button:hover {
-      background-color: #fff;
-      color: #333;
-      transform: scale(1.05);
-    }
-
-    a {
-      display: inline-block;
-      margin: 1em;
-      padding: 0.8em 1.2em;
-      background-color: rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      color: #fff;
-      text-decoration: none;
-      transition: all 0.3s ease;
-    }
-
-    a:hover {
-      background-color: #fff;
-      color: #333;
-      transform: scale(1.05);
-    }
-
-    .language-select {
-      background-color: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      padding: 0.6em 2.5em 0.6em 1.2em;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right 0.7em center;
-      background-size: 1em;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1 data-i18n="title"></h1>
-    <p data-i18n="subtitle"></p>
-    <div id="avatar-container">
-      <img src="Sakino.JPG" alt="Avatar" class="avatar">
+    <div class="switcher-container">
+      <div class="language-switcher" onclick="switchLanguage()">🌐 Language</div>
+      <div class="theme-switcher" onclick="toggleTheme()">🌓 Theme</div>
     </div>
-    <canvas id="particle-canvas"></canvas>
   </header>
 
-  <main>
-    <h2 data-i18n="introTitle"></h2>
-    <p data-i18n="introContent"></p>
-    <h2 data-i18n="linksTitle"></h2>
-    <a href="https://github.com/Sakino486" target="_blank" data-i18n="githubLink"></a>
-    <a href="https://example.com/blog" target="_blank" data-i18n="blogLink"></a>
-  </main>
-
-  <div class="btn-group">
-    <select class="language-select button" id="language-select"></select>
-    <button id="theme-toggle" class="button"></button>
+  <div class="avatar-container" id="avatar">
+    <img src="your-avatar.jpg" alt="Avatar" />
   </div>
 
-  <footer>
-    <p data-i18n="copyright"></p>
-  </footer>
+  <canvas id="particles-canvas"></canvas>
 
   <script>
-    const APP_CONFIG = {
-      languages: {
-        ja: {
-          name: '日本語',
-          content: {
-            title: "ようこそ、Sakinoの世界へ",
-            subtitle: "コードとデザインの融合",
-            introTitle: "自己紹介",
-            introContent: "私はSakino、夢とコードの狭間を旅する学生です。",
-            linksTitle: "リンク",
-            githubLink: "GitHub",
-            blogLink: "技術ブログ",
-            themeBtn: { light: "ダークモード", dark: "ライトモード" },
-            copyright: "© 2025 Sakino. 無断転載を禁じます"
-          }
-        },
-        zh: {
-          name: '中文',
-          content: {
-            title: "欢迎来到Sakino的世界",
-            subtitle: "代码与设计的完美结合",
-            introTitle: "关于我",
-            introContent: "我是Sakino，一个在梦与代码之间旅行的学生。",
-            linksTitle: "链接",
-            githubLink: "GitHub",
-            blogLink: "技术博客",
-            themeBtn: { light: "深色模式", dark: "浅色模式" },
-            copyright: "© 2025 Sakino. 版权所有"
-          }
-        },
-        en: {
-          name: 'English',
-          content: {
-            title: "Welcome to Sakino's World",
-            subtitle: "Where Code Meets Design",
-            introTitle: "About Me",
-            introContent: "I'm Sakino, a student traveling between dreams and code.",
-            linksTitle: "Links",
-            githubLink: "GitHub",
-            blogLink: "Tech Blog",
-            themeBtn: { light: "Dark Mode", dark: "Light Mode" },
-            copyright: "© 2025 Sakino. All Rights Reserved"
-          }
-        }
-      }
-    };
-
-    class AppController {
-      constructor() {
-        this.lang = localStorage.getItem('lang') || 'ja';
-        this.isDarkMode = localStorage.getItem('theme') === 'dark';
-        this.init();
-      }
-
-      init() {
-        this.renderLanguageOptions();
-        this.applyTheme();
-        this.updateAllContent();
-        this.bindEvents();
-      }
-
-      renderLanguageOptions() {
-        const selector = document.getElementById('language-select');
-        selector.innerHTML = Object.entries(APP_CONFIG.languages)
-          .map(([code, lang]) => `<option value="${code}">${lang.name}</option>`)
-          .join('');
-        selector.value = this.lang;
-      }
-
-      applyTheme() {
-        document.body.classList.toggle('dark', this.isDarkMode);
-      }
-
-      updateAllContent() {
-        const content = APP_CONFIG.languages[this.lang].content;
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-          const key = el.dataset.i18n;
-          if (key !== 'themeBtn') el.textContent = content[key];
-        });
-        this.updateThemeButton();
-      }
-
-      updateThemeButton() {
-        const themeKey = this.isDarkMode ? 'dark' : 'light';
-        const btnText = APP_CONFIG.languages[this.lang].content.themeBtn[themeKey];
-        document.getElementById('theme-toggle').textContent = btnText;
-      }
-
-      bindEvents() {
-        document.getElementById('language-select').addEventListener('change', e => {
-          this.lang = e.target.value;
-          localStorage.setItem('lang', this.lang);
-          this.updateAllContent();
-        });
-
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-          this.isDarkMode = !this.isDarkMode;
-          localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
-          this.applyTheme();
-          this.updateThemeButton();
-        });
-      }
+    let currentLanguage = 'en';
+    function switchLanguage() {
+      currentLanguage = currentLanguage === 'en' ? 'zh' : 'en';
+      alert('Switched to ' + (currentLanguage === 'en' ? 'English' : '中文'));
     }
 
-    new AppController();
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+    }
 
-    // 彩色发光粒子全屏效果
-    const canvas = document.getElementById("particle-canvas");
-    const ctx = canvas.getContext("2d");
+    // 粒子系统
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const colors = ['#ffa500', '#00ff00', '#00ffff']; // 橙、绿、蓝
+    let center = { x: 0, y: 0 };
+    let hover = false;
+
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const avatar = document.querySelector("#avatar-container");
+
+    const avatar = document.getElementById('avatar');
     const rect = avatar.getBoundingClientRect();
-    const center = {
+    center = {
       x: rect.left + rect.width / 2,
       y: rect.top + rect.height / 2
     };
-    let attraction = false;
-    const colors = ["#ffa500", "#00ff00", "#00bfff"];
 
-    class Particle {
-      constructor() {
-        this.reset();
-      }
-
-      reset() {
-        this.x = center.x;
-        this.y = center.y;
-        const angle = Math.random() * 2 * Math.PI;
-        const speed = Math.random() * 1 + 1;
-        this.vx = Math.cos(angle) * speed * 2;
-        this.vy = Math.sin(angle) * speed * 2;
-        this.size = Math.random() * 4 + 2; // 2倍大小
-        this.alpha = 1;
-        this.color = colors[Math.floor(Math.random() * colors.length)];
-      }
-
-      update() {
-        const dx = center.x - this.x;
-        const dy = center.y - this.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const accel = attraction ? 0.1 : -0.05;
-        if (dist !== 0) {
-          this.vx += accel * (dx / dist);
-          this.vy += accel * (dy / dist);
-        }
-        this.x += this.vx;
-        this.y += this.vy;
-        this.alpha -= 0.008;
-        if (this.alpha <= 0 || this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
-          this.reset();
-        }
-      }
-
-      draw(ctx) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.shadowColor = this.color;
-        ctx.shadowBlur = 15;
-        ctx.fill();
-      }
+    function createParticle() {
+      const angle = Math.random() * 2 * Math.PI;
+      const speed = Math.random() * 1.5 + 0.5;
+      return {
+        x: center.x,
+        y: center.y,
+        size: 6, // 粒子大小统一
+        color: colors[Math.floor(Math.random() * colors.length)],
+        angle,
+        speed,
+        radius: 0,
+        returning: false,
+        life: 0,
+        maxLife: 80 + Math.random() * 40
+      };
     }
 
-    const particles = Array.from({ length: 100 }, () => new Particle());
+    function updateParticle(p) {
+      if (!p.returning && !hover) {
+        p.radius += p.speed;
+        p.x = center.x + p.radius * Math.cos(p.angle);
+        p.y = center.y + p.radius * Math.sin(p.angle);
+        if (p.radius > 80) { // 发光范围为原来的一半
+          p.returning = true;
+        }
+      } else {
+        const dx = center.x - p.x;
+        const dy = center.y - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const returnSpeed = 3;
+        if (dist > returnSpeed) {
+          p.x += (dx / dist) * returnSpeed;
+          p.y += (dy / dist) * returnSpeed;
+        } else {
+          p.returning = true;
+          p.speed = 0; // 回来后不再弹出
+        }
+      }
+      p.life++;
+    }
+
+    function drawParticle(p) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, 2 * Math.PI);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#ffffff'; // 白色描边
+      ctx.stroke();
+    }
 
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => {
-        p.update();
-        p.draw(ctx);
+
+      if (particles.length < 120 && !hover) {
+        particles.push(createParticle());
+      }
+
+      particles.forEach((p, i) => {
+        updateParticle(p);
+        drawParticle(p);
+        if (p.life > p.maxLife) {
+          particles.splice(i, 1);
+        }
       });
+
       requestAnimationFrame(animate);
     }
 
-    animate();
-
-    avatar.addEventListener("mouseenter", () => {
-      attraction = true;
-    });
-
-    avatar.addEventListener("mouseleave", () => {
-      attraction = false;
-    });
-
-    window.addEventListener("resize", () => {
+    window.addEventListener('resize', () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     });
+
+    avatar.addEventListener('mouseenter', () => {
+      hover = true;
+    });
+
+    avatar.addEventListener('mouseleave', () => {
+      hover = false;
+      const rect = avatar.getBoundingClientRect();
+      center = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+    });
+
+    animate();
   </script>
 </body>
 </html>
