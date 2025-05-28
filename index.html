@@ -298,6 +298,7 @@
     };
 
     let attraction = false;
+    let emitParticles = true; // 控制是否发射新粒子
     const colors = ["#5396A1", "#FDE6DC", "#FEB396"];
 
     class Particle {
@@ -311,10 +312,10 @@
         this.x = center.x;
         this.y = center.y;
         const angle = Math.random() * 2 * Math.PI;
-        const speed = attraction ? Math.random() * 1 + 1 : Math.random() * 3 + 3; // 鼠标离开时速度更快
-        this.vx = Math.cos(angle) * speed * 2;
-        this.vy = Math.sin(angle) * speed * 2;
-        this.size = 12; // 统一大小扩大3倍
+        const speed = Math.random() * 3 + 3; // 固定辐射速度
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.size = 12;
         this.alpha = 1;
         this.color = colors[Math.floor(Math.random() * colors.length)];
         this.returning = false;
@@ -325,9 +326,10 @@
         const dx = center.x - this.x;
         const dy = center.y - this.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const accel = attraction ? 0.1 : -0.05;
-
-        if (!this.returning && attraction) {
+        
+        if (attraction) {
+          // 鼠标在头像区域内，粒子返回中心
+          const accel = 0.1;
           this.vx += accel * (dx / dist);
           this.vy += accel * (dy / dist);
         }
@@ -349,7 +351,11 @@
         }
 
         if (this.alpha <= 0 || this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
-          this.reset();
+          if (!attraction && emitParticles) { // 只有不在吸引状态且允许发射时才重置
+            this.reset();
+          } else {
+            this.alpha = 0; // 否则让粒子消失
+          }
         }
       }
 
@@ -378,14 +384,32 @@
 
     avatar.addEventListener("mouseenter", () => {
       attraction = true;
-      // 鼠标进入时重置所有粒子，使它们立即开始吸引
-      particles.forEach(p => p.reset());
+      emitParticles = false; // 暂停新粒子辐射
+      
+      // 让所有粒子立即返回中心
+      particles.forEach(p => {
+        if (p.alpha > 0) {
+          const dx = center.x - p.x;
+          const dy = center.y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const speed = Math.random() * 2 + 2; // 返回速度
+          p.vx = (dx / dist) * speed;
+          p.vy = (dy / dist) * speed;
+          p.returning = false;
+        }
+      });
     });
 
     avatar.addEventListener("mouseleave", () => {
       attraction = false;
-      // 鼠标离开时重置所有粒子，使它们立即以更快的速度辐射
-      particles.forEach(p => p.reset());
+      emitParticles = true; // 恢复新粒子辐射
+      
+      // 重置所有可见粒子，让它们立即开始辐射
+      particles.forEach(p => {
+        if (p.alpha > 0) {
+          p.reset();
+        }
+      });
     });
 
     window.addEventListener("resize", () => {
@@ -400,6 +424,7 @@
   </script>
 </body>
 </html>
+
 
 
 
