@@ -24,11 +24,28 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
 
     body.dark {
       background: var(--bg-dark);
       color: var(--text-dark);
+    }
+
+    .background-image {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+    }
+
+    .background-image.active {
+      opacity: 0.7;
     }
 
     @keyframes gradientBG {
@@ -152,6 +169,11 @@
   </style>
 </head>
 <body>
+  <!-- 背景图片元素 -->
+  <img src="haikei1.JPG" alt="English Background" class="background-image" id="bg-en">
+  <img src="haikei2.JPG" alt="Japanese Background" class="background-image" id="bg-ja">
+  <img src="haikei3.JPG" alt="Chinese Background" class="background-image" id="bg-zh">
+
   <header>
     <h1 data-i18n="title"></h1>
     <p data-i18n="subtitle"></p>
@@ -192,7 +214,8 @@
             githubLink: "GitHub",
             blogLink: "技術ブログ",
             themeBtn: { light: "ダークモード", dark: "ライトモード" },
-            copyright: "© 2025 Sakino. 無断転載を禁じます"
+            copyright: "© 2025 Sakino. 無断転載を禁じます",
+            background: "bg-ja"
           }
         },
         zh: {
@@ -206,7 +229,8 @@
             githubLink: "GitHub",
             blogLink: "技术博客",
             themeBtn: { light: "深色模式", dark: "浅色模式" },
-            copyright: "© 2025 Sakino. 版权所有"
+            copyright: "© 2025 Sakino. 版权所有",
+            background: "bg-zh"
           }
         },
         en: {
@@ -220,7 +244,8 @@
             githubLink: "GitHub",
             blogLink: "Tech Blog",
             themeBtn: { light: "Dark Mode", dark: "Light Mode" },
-            copyright: "© 2025 Sakino. All Rights Reserved"
+            copyright: "© 2025 Sakino. All Rights Reserved",
+            background: "bg-en"
           }
         }
       }
@@ -238,6 +263,7 @@
         this.applyTheme();
         this.updateAllContent();
         this.bindEvents();
+        this.updateBackground(); // 初始化背景
       }
 
       renderLanguageOptions() {
@@ -259,12 +285,27 @@
           if (key !== 'themeBtn') el.textContent = content[key];
         });
         this.updateThemeButton();
+        this.updateBackground(); // 语言切换时更新背景
       }
 
       updateThemeButton() {
         const themeKey = this.isDarkMode ? 'dark' : 'light';
         const btnText = APP_CONFIG.languages[this.lang].content.themeBtn[themeKey];
         document.getElementById('theme-toggle').textContent = btnText;
+      }
+
+      updateBackground() {
+        // 隐藏所有背景图片
+        document.querySelectorAll('.background-image').forEach(img => {
+          img.classList.remove('active');
+        });
+        
+        // 显示当前语言的背景图片
+        const bgId = APP_CONFIG.languages[this.lang].content.background;
+        const bgElement = document.getElementById(bgId);
+        if (bgElement) {
+          bgElement.classList.add('active');
+        }
       }
 
       bindEvents() {
@@ -439,6 +480,7 @@
   </script>
 </body>
 </html>
+
 
 
 
