@@ -433,6 +433,11 @@
     const particles = Array.from({ length: 100 }, () => new Particle());
 
     function animate() {
+       rect = avatar.getBoundingClientRect();
+center = {
+  x: rect.left + rect.width / 2,
+  y: rect.top + rect.height / 2
+};
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach(p => {
         p.update();
@@ -444,11 +449,7 @@
     animate();
 
     document.addEventListener("mousemove", (e) => {
-      rect = avatar.getBoundingClientRect();
-center = {
-  x: rect.left + rect.width / 2,
-  y: rect.top + rect.height / 2
-};
+     
       const isInside = isMouseInAvatarCircle(e.clientX, e.clientY);
       
       if (isInside && !attraction) {
