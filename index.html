@@ -369,7 +369,7 @@ class Particle {
     this.lifetime = 0;
     this.maxLifetime = 10 * 60; // 10秒寿命
     this.blinkProgress = 0;    // 闪烁进度
-    this.blinkPeriod = 120;    // 2秒周期（120帧）
+    this.blinkPeriod = 72;    // 2秒周期（120帧）
   }
 
   reset() {
@@ -431,7 +431,7 @@ class Particle {
     ctx.save();
     ctx.beginPath();
     ctx.shadowColor = this.color;
-    ctx.shadowBlur = 20 * this.alpha; // 发光亮度跟透明度同步
+    ctx.shadowBlur = 10 * this.alpha; // 发光亮度跟透明度同步
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
     ctx.fillStyle = this.color;
     ctx.globalAlpha = this.alpha;
