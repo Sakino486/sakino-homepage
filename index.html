@@ -444,6 +444,11 @@
     animate();
 
     document.addEventListener("mousemove", (e) => {
+      rect = avatar.getBoundingClientRect();
+center = {
+  x: rect.left + rect.width / 2,
+  y: rect.top + rect.height / 2
+};
       const isInside = isMouseInAvatarCircle(e.clientX, e.clientY);
       
       if (isInside && !attraction) {
