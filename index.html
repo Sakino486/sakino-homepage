@@ -179,6 +179,16 @@
       background-position: right 0.7em center;
       background-size: 1em;
     }
+    @keyframes avatarPulse {
+  0%   { transform: scale(0.8); }
+  50%  { transform: scale(1.16); }
+  100% { transform: scale(0.8); }
+}
+
+.pulse-avatar {
+  animation: avatarPulse 2.4s ease-in-out infinite;
+  transform-origin: center center;
+}
   </style>
 </head>
 <body>
@@ -191,7 +201,7 @@
     <h1 data-i18n="title"></h1>
     <p data-i18n="subtitle"></p>
     <div id="avatar-container">
-      <img src="Sakino.JPG" alt="Avatar" class="avatar">
+      <img src="Sakino.JPG" alt="Avatar" class="avatar pulse-avatar">
     </div>
     <canvas id="particle-canvas"></canvas>
   </header>
