@@ -46,20 +46,34 @@
     }
 
     .background-image {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -1;
-      opacity: 0;
-      transition: opacity 1.5s ease;
-    }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1; /* 背景在最底 */
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
 
-    .background-image.active {
-      opacity: 0.7;
-    }
+.background-image.active {
+  opacity: 0.7;
+}
+
+#dark-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 1000; /* 盖在背景之上 */
+}
+
+#dark-overlay.active {
+  opacity: 1;
+}
 
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
@@ -196,6 +210,7 @@
   <img src="haikei1.JPG" alt="English Background" class="background-image" id="bg-en">
   <img src="haikei2.JPG" alt="Japanese Background" class="background-image" id="bg-ja">
   <img src="haikei3.JPG" alt="Chinese Background" class="background-image" id="bg-zh">
+  <div id="dark-overlay"></div>
 
   <header>
     <h1 data-i18n="title"></h1>
