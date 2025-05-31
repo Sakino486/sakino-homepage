@@ -435,8 +435,8 @@
     function animate() {
        rect = avatar.getBoundingClientRect();
 center = {
-  x: rect.left + rect.width / 2,
-  y: rect.top + rect.height / 2
+  x: rect.left + rect.width / 2 + window.scrollX,
+  y: rect.top + rect.height / 2 + window.scrollY
 };
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach(p => {
