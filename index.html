@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <script>
+  // 强制注销所有Service Worker并清除缓存
+  (function() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then(regs => Promise.all(regs.map(reg => reg.unregister())))
+        .then(() => caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))))
+        .then(() => console.log('Service Worker已注销，缓存已清除'))
+        .catch(err => console.error('清理失败:', err));
+    }
+  })();
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sakino's Homepage</title>
