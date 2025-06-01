@@ -32,6 +32,11 @@
       color: var(--text-dark);
     }
 
+    body.no-theme {
+      background: none;
+      animation: none;
+    }
+
     /* 优化后的平滑文字描边 */
     h1, h2, p, footer p {
       text-shadow: 
@@ -46,34 +51,34 @@
     }
 
     .background-image {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: -1; /* 背景在最底 */
-  opacity: 1;
-  transition: opacity 1.5s ease;
-}
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+    }
 
-.background-image.active {
-  opacity: 0.7;
-}
+    .background-image.active {
+      opacity: 0.7;
+    }
 
-#dark-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  z-index: 0; /* 盖在背景之上 */
-}
+    #dark-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: 0;
+    }
 
-#dark-overlay.active {
-  opacity: 1;
-}
+    #dark-overlay.active {
+      opacity: 1;
+    }
 
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
@@ -193,16 +198,32 @@
       background-position: right 0.7em center;
       background-size: 1em;
     }
+    
     @keyframes avatarPulse {
-  0%   { transform: scale(0.96); }
-  50%  { transform: scale(1.08); }
-  100% { transform: scale(0.96); }
-}
+      0%   { transform: scale(0.96); }
+      50%  { transform: scale(1.08); }
+      100% { transform: scale(0.96); }
+    }
 
-.pulse-avatar {
-  animation: avatarPulse 3s ease-in-out infinite;
-  transform-origin: center center;
-}
+    .pulse-avatar {
+      animation: avatarPulse 3s ease-in-out infinite;
+      transform-origin: center center;
+    }
+    
+    /* 主题切换下拉菜单样式 */
+    .theme-select {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 0.6em 2.5em 0.6em 1.2em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.7em center;
+      background-size: 1em;
+    }
   </style>
 </head>
 <body>
@@ -231,7 +252,11 @@
 
   <div class="btn-group">
     <select class="language-select button" id="language-select"></select>
-    <button id="theme-toggle" class="button"></button>
+    <select class="theme-select button" id="theme-select">
+      <option value="none" data-i18n="themeNone">背景表示</option>
+      <option value="light" data-i18n="themeLight">ライトモード</option>
+      <option value="dark" data-i18n="themeDark">ダークモード</option>
+    </select>
   </div>
 
   <footer>
@@ -251,7 +276,9 @@
             linksTitle: "リンク",
             githubLink: "私の GitHub",
             blogLink: "ブログ",
-            themeBtn: { light: "ダークモード", dark: "ライトモード" },
+            themeNone: "背景表示",
+            themeLight: "ライトモード",
+            themeDark: "ダークモード",
             copyright: "© 2025 Sakino. 無断転載を禁じます",
             background: "bg-ja"
           }
@@ -266,7 +293,9 @@
             linksTitle: "链接至",
             githubLink: "我的 GitHub",
             blogLink: "博客",
-            themeBtn: { light: "深色模式", dark: "浅色模式" },
+            themeNone: "显示背景",
+            themeLight: "浅色模式",
+            themeDark: "深色模式",
             copyright: "© 2025 Sakino. 版权所有",
             background: "bg-zh"
           }
@@ -281,7 +310,9 @@
             linksTitle: "Links to",
             githubLink: "My GitHub",
             blogLink: "Blog",
-            themeBtn: { light: "Dark Mode", dark: "Light Mode" },
+            themeNone: "Show Background",
+            themeLight: "Light Mode",
+            themeDark: "Dark Mode",
             copyright: "© 2025 Sakino. All Rights Reserved",
             background: "bg-en"
           }
@@ -292,7 +323,7 @@
     class AppController {
       constructor() {
         this.lang = localStorage.getItem('lang') || 'ja';
-        this.isDarkMode = localStorage.getItem('theme') === 'dark';
+        this.theme = localStorage.getItem('theme') || 'none';
         this.init();
       }
 
@@ -313,23 +344,48 @@
       }
 
       applyTheme() {
-        document.body.classList.toggle('dark', this.isDarkMode);
+        // 移除所有主题类
+        document.body.classList.remove('dark', 'no-theme');
+        
+        // 根据当前主题添加相应类
+        if (this.theme === 'dark') {
+          document.body.classList.add('dark');
+        } else if (this.theme === 'none') {
+          document.body.classList.add('no-theme');
+        }
+        
+        // 设置主题选择器的值
+        document.getElementById('theme-select').value = this.theme;
+        
+        // 更新背景显示状态
+        this.updateBackgroundVisibility();
+      }
+
+      updateBackgroundVisibility() {
+        const bgImages = document.querySelectorAll('.background-image');
+        
+        if (this.theme === 'none') {
+          // 显示背景图
+          bgImages.forEach(img => img.style.display = 'block');
+          document.getElementById('dark-overlay').classList.remove('active');
+        } else {
+          // 隐藏背景图
+          bgImages.forEach(img => img.style.display = 'none');
+          if (this.theme === 'dark') {
+            document.getElementById('dark-overlay').classList.add('active');
+          } else {
+            document.getElementById('dark-overlay').classList.remove('active');
+          }
+        }
       }
 
       updateAllContent() {
         const content = APP_CONFIG.languages[this.lang].content;
         document.querySelectorAll('[data-i18n]').forEach(el => {
           const key = el.dataset.i18n;
-          if (key !== 'themeBtn') el.textContent = content[key];
+          el.textContent = content[key];
         });
-        this.updateThemeButton();
         this.updateBackground();
-      }
-
-      updateThemeButton() {
-        const themeKey = this.isDarkMode ? 'dark' : 'light';
-        const btnText = APP_CONFIG.languages[this.lang].content.themeBtn[themeKey];
-        document.getElementById('theme-toggle').textContent = btnText;
       }
 
       updateBackground() {
@@ -342,6 +398,8 @@
         if (bgElement) {
           bgElement.classList.add('active');
         }
+        
+        this.updateBackgroundVisibility();
       }
 
       bindEvents() {
@@ -351,11 +409,11 @@
           this.updateAllContent();
         });
 
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-          this.isDarkMode = !this.isDarkMode;
-          localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
+        // 主题选择器事件
+        document.getElementById('theme-select').addEventListener('change', e => {
+          this.theme = e.target.value;
+          localStorage.setItem('theme', this.theme);
           this.applyTheme();
-          this.updateThemeButton();
         });
       }
     }
@@ -388,92 +446,91 @@
       return distance <= avatarRadius;
     }
 
-class Particle {
-  constructor() {
-    this.reset();
-    this.lifetime = 0;
-    this.maxLifetime = 10 * 60; // 10秒寿命
-    this.blinkProgress = 0;    // 闪烁进度
-    this.blinkPeriod = 60;    // 1秒周期（60帧）
-  }
-
-  reset() {
-    this.x = center.x;
-    this.y = center.y;
-    const angle = Math.random() * 2 * Math.PI;
-    const speed = Math.random() * 3 + 3;
-    this.vx = Math.cos(angle) * speed;
-    this.vy = Math.sin(angle) * speed;
-    this.size = 12;
-    this.alpha = 1;
-    this.color = colors[Math.floor(Math.random() * colors.length)];
-    this.returning = false;
-    this.lifetime = 0;
-    this.blinkProgress = 0;
-  }
-
-  update() {
-    const dx = center.x - this.x;
-    const dy = center.y - this.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    if (attraction) {
-      const accel = 0.1;
-      this.vx += accel * (dx / dist);
-      this.vy += accel * (dy / dist);
-    }
-
-    this.x += this.vx;
-    this.y += this.vy;
-    this.lifetime++;
-
-    if (attraction && dist < 10 && !this.returning) {
-      this.returning = true;
-      this.vx = 0;
-      this.vy = 0;
-    }
-
-    this.blinkProgress = (this.blinkProgress + 1) % this.blinkPeriod;
-    // 透明度在0.15到1之间循环（sin波形）
-    const blinkAlpha = 0.425 * Math.sin((this.blinkProgress / this.blinkPeriod) * 2 * Math.PI) + 0.575;
-
-    if (this.lifetime >= this.maxLifetime) {
-      this.alpha = 0;
-    } else {
-      this.alpha = blinkAlpha * (1 - (this.lifetime / this.maxLifetime));
-    }
-
-    if (this.alpha <= 0 || this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
-      if (!attraction && emitParticles) {
+    class Particle {
+      constructor() {
         this.reset();
-      } else {
-        this.alpha = 0;
+        this.lifetime = 0;
+        this.maxLifetime = 10 * 60;
+        this.blinkProgress = 0;
+        this.blinkPeriod = 60;
+      }
+
+      reset() {
+        this.x = center.x;
+        this.y = center.y;
+        const angle = Math.random() * 2 * Math.PI;
+        const speed = Math.random() * 3 + 3;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.size = 12;
+        this.alpha = 1;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.returning = false;
+        this.lifetime = 0;
+        this.blinkProgress = 0;
+      }
+
+      update() {
+        const dx = center.x - this.x;
+        const dy = center.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (attraction) {
+          const accel = 0.1;
+          this.vx += accel * (dx / dist);
+          this.vy += accel * (dy / dist);
+        }
+
+        this.x += this.vx;
+        this.y += this.vy;
+        this.lifetime++;
+
+        if (attraction && dist < 10 && !this.returning) {
+          this.returning = true;
+          this.vx = 0;
+          this.vy = 0;
+        }
+
+        this.blinkProgress = (this.blinkProgress + 1) % this.blinkPeriod;
+        const blinkAlpha = 0.425 * Math.sin((this.blinkProgress / this.blinkPeriod) * 2 * Math.PI) + 0.575;
+
+        if (this.lifetime >= this.maxLifetime) {
+          this.alpha = 0;
+        } else {
+          this.alpha = blinkAlpha * (1 - (this.lifetime / this.maxLifetime));
+        }
+
+        if (this.alpha <= 0 || this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+          if (!attraction && emitParticles) {
+            this.reset();
+          } else {
+            this.alpha = 0;
+          }
+        }
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 10 * this.alpha;
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.alpha;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.restore();
       }
     }
-  }
-
-  draw(ctx) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 10 * this.alpha; // 发光亮度跟透明度同步
-    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-    ctx.fillStyle = this.color;
-    ctx.globalAlpha = this.alpha;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.restore();
-  }
-}
 
     const particles = Array.from({ length: 100 }, () => new Particle());
 
     function animate() {
-       rect = avatar.getBoundingClientRect();
-center = {
-  x: rect.left + rect.width / 2 + window.scrollX,
-  y: rect.top + rect.height / 2 + window.scrollY
-};
+      rect = avatar.getBoundingClientRect();
+      center = {
+        x: rect.left + rect.width / 2 + window.scrollX,
+        y: rect.top + rect.height / 2 + window.scrollY
+      };
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach(p => {
         p.update();
@@ -485,46 +542,44 @@ center = {
     animate();
 
     document.addEventListener("mousemove", (e) => {
-  // 实时获取头像位置
-  const rect = avatar.getBoundingClientRect();
-  const center = {
-    x: rect.left + rect.width / 2,
-    y: rect.top + rect.height / 2
-  };
-  const avatarRadius = rect.width / 2;
+      const rect = avatar.getBoundingClientRect();
+      const center = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+      const avatarRadius = rect.width / 2;
 
-  // 实时判断鼠标是否在头像区域内
-  const dx = e.clientX - center.x;
-  const dy = e.clientY - center.y;
-  const distance = Math.sqrt(dx * dx + dy * dy);
-  const isInside = distance <= avatarRadius;
+      const dx = e.clientX - center.x;
+      const dy = e.clientY - center.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const isInside = distance <= avatarRadius;
 
-  if (isInside && !attraction) {
-    attraction = true;
-    emitParticles = false;
+      if (isInside && !attraction) {
+        attraction = true;
+        emitParticles = false;
 
-    particles.forEach(p => {
-      if (p.alpha > 0) {
-        const dx = center.x - p.x;
-        const dy = center.y - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const speed = Math.random() * 2 + 2;
-        p.vx = (dx / dist) * speed;
-        p.vy = (dy / dist) * speed;
-        p.returning = false;
+        particles.forEach(p => {
+          if (p.alpha > 0) {
+            const dx = center.x - p.x;
+            const dy = center.y - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const speed = Math.random() * 2 + 2;
+            p.vx = (dx / dist) * speed;
+            p.vy = (dy / dist) * speed;
+            p.returning = false;
+          }
+        });
+      } else if (!isInside && attraction) {
+        attraction = false;
+        emitParticles = true;
+
+        particles.forEach(p => {
+          if (p.alpha > 0) {
+            p.reset();
+          }
+        });
       }
     });
-  } else if (!isInside && attraction) {
-    attraction = false;
-    emitParticles = true;
-
-    particles.forEach(p => {
-      if (p.alpha > 0) {
-        p.reset();
-      }
-    });
-  }
-});
 
     window.addEventListener("resize", () => {
       canvas.width = window.innerWidth;
@@ -538,6 +593,7 @@ center = {
   </script>
 </body>
 </html>
+
 
 
 
