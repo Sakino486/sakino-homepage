@@ -395,6 +395,14 @@
           this.openGalleryPage();
         });
 
+        // 移动端触摸支持
+        if ('ontouchstart' in window) {
+          document.getElementById('avatarImage').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.openGalleryPage();
+          });
+        }
+
         // 页面加载动画
         window.addEventListener('load', () => {
           setTimeout(() => {
@@ -531,54 +539,56 @@
       }
 
       openGalleryPage() {
-        console.log("Opening gallery...");
-        if (this.checkGalleryAuth()) {
-          this.launchGalleryWindow();
-        } else {
+        console.log("直接打开画廊页面");
+        this.launchGalleryWindow(false); // false表示不需要密码
+      }
+
+      launchGalleryWindow(requireAuth = false) {
+        console.log("打开画廊窗口，需要验证:", requireAuth);
+        
+        if (requireAuth && !this.checkGalleryAuth()) {
           this.showPasswordModal();
+          return;
+        }
+
+        try {
+          const features = 'width=1200,height=800,scrollbars=yes';
+          const galleryWindow = window.open('gallery.html', 'galleryWindow', features);
+          
+          if (!galleryWindow || galleryWindow.closed) {
+            console.warn("弹窗被阻止，尝试备用方案");
+            if (confirm("弹窗被阻止，是否在新标签页打开画廊？")) {
+              window.location.href = 'gallery.html';
+            }
+          }
+        } catch (e) {
+          console.error("窗口打开失败:", e);
+          alert("画廊打开失败，请稍后再试");
         }
       }
 
       checkGalleryAuth() {
         const auth = JSON.parse(localStorage.getItem('gallery_auth'));
-        const isValid = auth && auth.authenticated && auth.expires > Date.now();
-        console.log("Auth check:", isValid);
-        return isValid;
+        return auth && auth.authenticated && auth.expires > Date.now();
       }
 
       showPasswordModal() {
-        console.log("Showing password modal");
-        const password = prompt("请输入访问密码（默认密码：010101）:");
+        const password = prompt("请输入编辑密码（默认密码：010101）:");
         if (password === "010101") {
           localStorage.setItem('gallery_auth', JSON.stringify({
             authenticated: true,
-            expires: Date.now() + 3600000
+            expires: Date.now() + 3600000 // 1小时有效期
           }));
-          this.launchGalleryWindow();
-        } else if (password !== null) {
-          alert("密码错误");
+          return true;
         }
-      }
-
-      launchGalleryWindow() {
-        console.log("Launching gallery window");
-        const features = 'width=1200,height=800,scrollbars=yes,resizable=yes';
-        const galleryWindow = window.open('gallery.html', 'galleryWindow', features);
-        
-        if (!galleryWindow) {
-          console.warn("Popup blocked, trying fallback");
-          const fallback = confirm("弹窗被阻止，是否在新标签页打开？");
-          if (fallback) {
-            window.location.href = 'gallery.html';
-          }
-        }
+        alert("密码错误");
+        return false;
       }
     }
 
     // 初始化（确保DOM加载完成）
     document.addEventListener('DOMContentLoaded', () => {
-      const appController = new AppController();
-      window.appController = appController; // 暴露到全局
+      window.appController = new AppController();
     });
 
     // 图片错误处理
@@ -751,16 +761,6 @@
         y: rect.top + rect.height / 2
       };
     });
-
-    // 移动端触摸支持
-    if ('ontouchstart' in window) {
-      document.getElementById('avatarImage').addEventListener('touchend', function(e) {
-        e.preventDefault();
-        if (window.appController) {
-          appController.openGalleryPage();
-        }
-      });
-    }
   </script>
 </body>
 </html>
