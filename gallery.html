@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,12 +18,6 @@
       padding: 0;
       background-color: #f5f5f5;
       color: var(--dark-text);
-      transition: all 0.3s ease;
-    }
-    
-    body.dark {
-      background-color: var(--dark-bg);
-      color: var(--light-text);
     }
     
     header {
@@ -48,33 +42,26 @@
       overflow: hidden;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transition: transform 0.3s, box-shadow 0.3s;
+      transition: transform 0.3s;
       aspect-ratio: 1;
     }
     
     .gallery-item:hover {
       transform: translateY(-5px);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     }
     
-    .gallery-item img {
+    .gallery-item img,
+    .gallery-item video {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
-      transition: transform 0.5s;
-    }
-    
-    .gallery-item:hover img {
-      transform: scale(1.05);
+      cursor: pointer;
     }
     
     .admin-controls {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      display: flex;
-      gap: 10px;
       z-index: 100;
     }
     
@@ -88,29 +75,41 @@
       font-size: 1.2rem;
       cursor: pointer;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      transition: all 0.3s;
+    }
+    
+    .auth-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      z-index: 1000;
+      text-align: center;
+    }
+    
+    .auth-panel input {
+      display: block;
+      margin: 1rem auto;
+      padding: 0.5rem;
+      width: 200px;
+    }
+    
+    .upload-panel {
       display: none;
-    }
-    
-    .admin-btn:hover {
-      transform: scale(1.1);
-    }
-    
-    .back-btn {
-      position: absolute;
-      top: 20px;
+      position: fixed;
+      bottom: 20px;
       left: 20px;
-      background: rgba(255,255,255,0.8);
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      font-size: 1rem;
-      cursor: pointer;
+      right: 20px;
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
       z-index: 100;
     }
     
-    /* 灯箱样式 */
     .lightbox {
       position: fixed;
       top: 0;
@@ -124,49 +123,18 @@
       z-index: 1000;
     }
     
-    .lightbox img {
+    .lightbox-content {
       max-width: 80%;
       max-height: 80%;
-      border-radius: 5px;
     }
     
     .lightbox-close {
       position: absolute;
       top: 20px;
-      right: 20px;
+      right: 30px;
       color: white;
       font-size: 2rem;
       cursor: pointer;
-    }
-    
-    /* 编辑模式样式 */
-    .edit-mode .gallery-item::after {
-      content: '';
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 20px;
-      height: 20px;
-      background: rgba(255,255,255,0.8);
-      border-radius: 50%;
-      cursor: pointer;
-    }
-    
-    .edit-panel {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: white;
-      padding: 15px;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-      transform: translateY(100%);
-      transition: transform 0.3s;
-      z-index: 100;
-    }
-    
-    .edit-panel.active {
-      transform: translateY(0);
     }
     
     @media (max-width: 768px) {
@@ -179,202 +147,193 @@
 <body>
   <header>
     <h1>Sakino's Gallery</h1>
-    <p>Welcome to my visual collection</p>
+    <p id="status">正在加载...</p>
   </header>
   
-  <button class="back-btn" onclick="window.history.back()">←</button>
-  
-  <div class="gallery-container" id="gallery">
-    <!-- 图片将通过JavaScript动态加载 -->
-  </div>
+  <div class="gallery-container" id="gallery"></div>
   
   <div class="admin-controls">
-    <button class="admin-btn" id="editBtn">✏️</button>
-    <button class="admin-btn" id="addBtn">➕</button>
+    <button class="admin-btn" id="uploadBtn" title="上传文件">➕</button>
+  </div>
+  
+  <div class="auth-panel" id="authPanel">
+    <h3>管理员登录</h3>
+    <input type="password" id="password" placeholder="输入密码">
+    <button onclick="verifyPassword()">登录</button>
+  </div>
+  
+  <div class="upload-panel" id="uploadPanel">
+    <input type="file" id="fileInput" multiple accept="image/*,video/*">
+    <button onclick="uploadFiles()">上传</button>
+    <div id="uploadStatus" style="margin-top:10px;"></div>
   </div>
   
   <div class="lightbox" id="lightbox">
     <span class="lightbox-close" onclick="closeLightbox()">×</span>
-    <img id="lightbox-img" src="" alt="Enlarged view">
-  </div>
-  
-  <div class="edit-panel" id="editPanel">
-    <h3>Edit Image</h3>
-    <input type="text" id="imageTitle" placeholder="Image title">
-    <textarea id="imageDesc" placeholder="Image description"></textarea>
-    <div>
-      <button onclick="saveChanges()">Save</button>
-      <button onclick="cancelEdit()">Cancel</button>
-      <button onclick="deleteImage()" class="delete-btn">Delete</button>
-    </div>
+    <img id="lightbox-img" class="lightbox-content" src="" alt="">
+    <video id="lightbox-video" class="lightbox-content" controls></video>
   </div>
 
   <script>
-    // 示例图片数据
-    const galleryData = [
-      { id: 1, src: "images/gallery1.jpg", title: "Spring Morning", desc: "A peaceful morning in early spring" },
-      { id: 2, src: "images/gallery2.jpg", title: "Mountain View", desc: "Beautiful mountain landscape" },
-      { id: 3, src: "images/gallery3.jpg", title: "Ocean Sunset", desc: "Sunset over the pacific ocean" },
-      { id: 4, src: "images/gallery4.jpg", title: "Forest Path", desc: "A path through the ancient forest" },
-      { id: 5, src: "images/gallery5.jpg", title: "City Lights", desc: "Night view of the city" },
-      { id: 6, src: "images/gallery6.jpg", title: "Autumn Leaves", desc: "Colorful autumn foliage" }
-    ];
-
-    // 初始化画廊
-    function initGallery() {
-      const gallery = document.getElementById('gallery');
-      
-      galleryData.forEach(item => {
-        const galleryItem = document.createElement('div');
-        galleryItem.className = 'gallery-item';
-        galleryItem.dataset.id = item.id;
-        
-        const img = document.createElement('img');
-        img.src = item.src;
-        img.alt = item.title;
-        img.loading = "lazy";
-        
-        img.addEventListener('click', () => {
-          openLightbox(item.src);
-        });
-        
-        galleryItem.appendChild(img);
-        gallery.appendChild(galleryItem);
-      });
-    }
-
-    // 灯箱功能
-    function openLightbox(src) {
-      const lightbox = document.getElementById('lightbox');
-      const lightboxImg = document.getElementById('lightbox-img');
-      
-      lightboxImg.src = src;
-      lightbox.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeLightbox() {
-      const lightbox = document.getElementById('lightbox');
-      lightbox.style.display = 'none';
-      document.body.style.overflow = '';
-    }
-
-    // 管理功能
-    function checkAuth() {
-      const auth = JSON.parse(localStorage.getItem('gallery_auth'));
-      const isAuthenticated = auth && auth.authenticated && auth.expires > Date.now();
-      
-      if (isAuthenticated) {
-        document.querySelectorAll('.admin-btn').forEach(btn => {
-          btn.style.display = 'block';
-        });
-      }
-    }
-
-    // 进入编辑模式
-    function enterEditMode() {
-      document.body.classList.add('edit-mode');
-      document.getElementById('editPanel').classList.add('active');
-      
-      // 添加编辑按钮到每个图片
-      document.querySelectorAll('.gallery-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-          if (e.target === this || e.target === this.querySelector('img')) {
-            const itemId = this.dataset.id;
-            const selectedItem = galleryData.find(item => item.id == itemId);
-            
-            if (selectedItem) {
-              document.getElementById('imageTitle').value = selectedItem.title;
-              document.getElementById('imageDesc').value = selectedItem.desc;
-              document.getElementById('editPanel').dataset.editingId = itemId;
-            }
-          }
-        });
-      });
-    }
-
-    // 保存更改
-    function saveChanges() {
-      const itemId = document.getElementById('editPanel').dataset.editingId;
-      const title = document.getElementById('imageTitle').value;
-      const desc = document.getElementById('imageDesc').value;
-      
-      // 这里应该发送到服务器保存
-      console.log(`Saving changes for item ${itemId}:`, { title, desc });
-      
-      exitEditMode();
-    }
-
-    // 删除图片
-    function deleteImage() {
-      const itemId = document.getElementById('editPanel').dataset.editingId;
-      
-      if (confirm('Are you sure you want to delete this image?')) {
-        // 这里应该发送到服务器删除
-        console.log(`Deleting item ${itemId}`);
-        
-        const itemElement = document.querySelector(`.gallery-item[data-id="${itemId}"]`);
-        if (itemElement) {
-          itemElement.remove();
-        }
-        
-        exitEditMode();
-      }
-    }
-
-    // 退出编辑模式
-    function exitEditMode() {
-      document.body.classList.remove('edit-mode');
-      document.getElementById('editPanel').classList.remove('active');
-      document.getElementById('editPanel').dataset.editingId = '';
-    }
-
-    // 取消编辑
-    function cancelEdit() {
-      exitEditMode();
-    }
-
-    // 添加新图片
-    function addNewImage() {
-      // 这里应该是打开文件选择器上传新图片
-      alert('Upload new image functionality would go here');
-    }
-
-    // 初始化
+    // ===== 配置 =====
+    const API_BASE = 'http://localhost:3000'; // 替换为你的本地服务器地址
+    const API_KEY = 'sakino123'; // 与server.js中的API_KEY一致
+    
+    // ===== 状态管理 =====
+    let isAuthenticated = localStorage.getItem('gallery_auth') === 'true';
+    
+    // ===== 初始化 =====
     document.addEventListener('DOMContentLoaded', () => {
-      initGallery();
-      checkAuth();
-      
-      // 绑定管理按钮事件
-      document.getElementById('editBtn').addEventListener('click', enterEditMode);
-      document.getElementById('addBtn').addEventListener('click', addNewImage);
-      
-      // 从主页获取主题设置
-      if (window.opener && opener.appController) {
-        if (opener.appController.theme === 'dark') {
-          document.body.classList.add('dark');
-        }
-      }
+      checkAuthStatus();
+      loadGallery();
+      document.getElementById('uploadBtn').addEventListener('click', toggleUploadPanel);
     });
-
-    // 全局访问函数
-    window.requestEditAccess = function() {
-      if (window.opener && opener.appController) {
-        opener.appController.launchGalleryWindow(true);
-      } else {
-        const password = prompt("请输入编辑密码:");
-        if (password === "010101") {
-          localStorage.setItem('gallery_auth', JSON.stringify({
-            authenticated: true,
-            expires: Date.now() + 3600000
-          }));
-          checkAuth();
-          return true;
-        }
-        alert("密码错误");
-        return false;
+    
+    // ===== 画廊功能 =====
+    async function loadGallery() {
+      try {
+        updateStatus('正在连接服务器...');
+        const response = await fetch(`${API_BASE}/files`);
+        
+        if (!response.ok) throw new Error('服务器响应异常');
+        
+        const files = await response.json();
+        renderGallery(files);
+        updateStatus(`已加载 ${files.length} 个文件`);
+        
+      } catch (error) {
+        console.error('加载失败:', error);
+        updateStatus('加载失败: ' + error.message);
       }
-    };
+    }
+    
+    function renderGallery(files) {
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = files.map(file => `
+        <div class="gallery-item" onclick="openLightbox('${file.url}', '${file.type}')">
+          ${file.type === 'image' ? 
+            `<img src="${file.url}" loading="lazy">` : 
+            `<video src="${file.url}"></video>`}
+        </div>
+      `).join('');
+    }
+    
+    // ===== 认证管理 =====
+    function checkAuthStatus() {
+      if (isAuthenticated) {
+        document.getElementById('authPanel').style.display = 'none';
+        document.getElementById('uploadBtn').style.display = 'block';
+      } else {
+        document.getElementById('authPanel').style.display = 'block';
+        document.getElementById('uploadBtn').style.display = 'none';
+        document.getElementById('uploadPanel').style.display = 'none';
+      }
+    }
+    
+    async function verifyPassword() {
+      const password = document.getElementById('password').value;
+      const hashed = await sha256(password);
+      
+      // 默认密码: sakino123 的SHA256值
+      if (hashed === 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3') {
+        isAuthenticated = true;
+        localStorage.setItem('gallery_auth', 'true');
+        checkAuthStatus();
+        updateStatus('管理员模式已激活');
+      } else {
+        alert('密码错误');
+      }
+    }
+    
+    // ===== 上传功能 =====
+    function toggleUploadPanel() {
+      const panel = document.getElementById('uploadPanel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+    
+    async function uploadFiles() {
+      if (!isAuthenticated) return;
+      
+      const files = document.getElementById('fileInput').files;
+      if (files.length === 0) {
+        alert('请先选择文件');
+        return;
+      }
+      
+      const status = document.getElementById('uploadStatus');
+      status.textContent = `准备上传 ${files.length} 个文件...`;
+      
+      try {
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+          formData.append('files', files[i]);
+        }
+        
+        const response = await fetch(`${API_BASE}/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`
+          },
+          body: formData
+        });
+        
+        if (!response.ok) throw new Error('上传失败');
+        
+        const result = await response.json();
+        console.log('上传结果:', result);
+        
+        const successCount = result.filter(r => r.status === 'success').length;
+        status.textContent = `成功上传 ${successCount}/${files.length} 个文件`;
+        
+        if (successCount > 0) {
+          loadGallery(); // 刷新画廊
+        }
+        
+      } catch (error) {
+        console.error('上传错误:', error);
+        status.textContent = '上传失败: ' + error.message;
+      }
+    }
+    
+    // ===== 灯箱功能 =====
+    function openLightbox(url, type) {
+      const lightbox = document.getElementById('lightbox');
+      const img = document.getElementById('lightbox-img');
+      const video = document.getElementById('lightbox-video');
+      
+      if (type === 'image') {
+        img.src = url;
+        img.style.display = 'block';
+        video.style.display = 'none';
+      } else {
+        video.src = url;
+        video.style.display = 'block';
+        img.style.display = 'none';
+      }
+      
+      lightbox.style.display = 'flex';
+    }
+    
+    function closeLightbox() {
+      document.getElementById('lightbox').style.display = 'none';
+      document.getElementById('lightbox-img').src = '';
+      document.getElementById('lightbox-video').src = '';
+      document.getElementById('lightbox-video').pause();
+    }
+    
+    // ===== 工具函数 =====
+    function updateStatus(message) {
+      document.getElementById('status').textContent = message;
+    }
+    
+    async function sha256(message) {
+      // 浏览器原生SHA256实现
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
   </script>
 </body>
 </html>
+
