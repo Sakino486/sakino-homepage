@@ -68,7 +68,7 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.5s ease;
-  z-index: 0; /* 盖在背景之上 */
+  z-index: 5; /* 盖在背景之上 */
 }
 
 #dark-overlay.active {
@@ -535,14 +535,6 @@ center = {
         y: rect.top + rect.height / 2
       };
     });
-     function toggleDarkMode(isDark) {
-  const overlay = document.getElementById('dark-overlay');
-  if (isDark) {
-    overlay.classList.add('active'); // 淡入
-  } else {
-    overlay.classList.remove('active'); // 淡出
-  }
-}
   </script>
 </body>
 </html>
