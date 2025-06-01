@@ -68,11 +68,11 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.5s ease;
-  z-index: 5; /* 盖在背景之上 */
+  z-index: -1; /* 盖在背景之上 */
 }
 
 #dark-overlay.active {
-  opacity: 1;
+  opacity: 5;
 }
 
     @keyframes gradientBG {
