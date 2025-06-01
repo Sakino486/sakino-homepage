@@ -17,7 +17,6 @@
       --linkedin-blue: #0077B5;
     }
 
-    /* 页面加载动画 */
     .page-loader {
       position: fixed;
       top: 0;
@@ -31,12 +30,10 @@
       align-items: center;
       transition: opacity 0.5s ease-out;
     }
-
     .page-loader.fade-out {
       opacity: 0;
       pointer-events: none;
     }
-
     .loader-spinner {
       width: 50px;
       height: 50px;
@@ -45,11 +42,9 @@
       border-top-color: #fff;
       animation: spin 1s ease-in-out infinite;
     }
-
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -64,30 +59,23 @@
       flex-direction: column;
       position: relative;
     }
-
     body.dark {
       background: var(--bg-dark);
       color: var(--text-dark);
     }
-
     body.no-theme {
       background: none;
       animation: none;
     }
-
-    /* 优化后的平滑文字描边 */
     h1, h2, p, footer p {
       text-shadow: 
         0 0 1px rgba(0, 0, 0, 0.7),
         0 0 0.5px rgba(0, 0, 0, 0.9);
     }
-
-    /* 更精细的按钮和链接描边 */
     .button, .language-select, a {
       text-shadow: 
         0 0 0.7px rgba(0, 0, 0, 0.8);
     }
-
     .background-image {
       position: fixed;
       top: 0;
@@ -99,11 +87,9 @@
       opacity: 0;
       transition: opacity 1.5s ease;
     }
-
     .background-image.active {
       opacity: 0.7;
     }
-
     #dark-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -113,17 +99,14 @@
       transition: opacity 0.5s ease;
       z-index: 0;
     }
-
     #dark-overlay.active {
       opacity: 1;
     }
-
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
     header {
       padding: 4em 0 2em;
       animation: fadeIn 2s forwards;
@@ -131,36 +114,30 @@
       transform: translateY(-20px);
       position: relative;
     }
-
     main {
       padding: 2em;
       animation: fadeIn 3s forwards;
       opacity: 0;
       transform: translateY(20px);
     }
-
     footer {
       background: rgba(0, 0, 0, 0.2);
       font-size: 0.9em;
       padding: 2em 1em;
       margin-top: auto;
     }
-
     @keyframes fadeIn {
       to { opacity: 1; transform: translateY(0); }
     }
-
     @media (prefers-reduced-motion) {
       header, main { animation: none; opacity: 1; transform: none; }
     }
-
     #avatar-container {
       position: relative;
       display: inline-block;
       width: 180px;
       height: 180px;
     }
-
     canvas#particle-canvas {
       position: absolute;
       top: 0;
@@ -170,7 +147,6 @@
       pointer-events: none;
       z-index: 0;
     }
-
     img.avatar {
       width: 180px;
       height: 180px;
@@ -179,8 +155,12 @@
       border: 3px solid rgba(255, 255, 255, 0.3);
       position: relative;
       z-index: 1;
+      cursor: pointer;
+      transition: transform 0.3s;
     }
-
+    img.avatar:hover {
+      transform: scale(1.05);
+    }
     .btn-group {
       display: flex;
       gap: 1em;
@@ -189,7 +169,6 @@
       max-width: 400px;
       margin: 20px auto;
     }
-
     .button {
       background-color: rgba(255, 255, 255, 0.1);
       color: #fff;
@@ -199,13 +178,11 @@
       cursor: pointer;
       transition: all 0.3s ease;
     }
-
     .button:hover {
       background-color: #fff;
       color: #333;
       transform: scale(1.05);
     }
-
     a {
       display: inline-block;
       margin: 1em;
@@ -216,13 +193,11 @@
       text-decoration: none;
       transition: all 0.3s ease;
     }
-
     a:hover {
       background-color: #fff;
       color: #333;
       transform: scale(1.05);
     }
-
     .language-select, .theme-select {
       background-color: rgba(255, 255, 255, 0.1);
       color: #fff;
@@ -236,26 +211,21 @@
       background-position: right 0.7em center;
       background-size: 1em;
     }
-    
     @keyframes avatarPulse {
       0%   { transform: scale(0.96); }
       50%  { transform: scale(1.08); }
       100% { transform: scale(0.96); }
     }
-
     .pulse-avatar {
       animation: avatarPulse 3s ease-in-out infinite;
       transform-origin: center center;
     }
-
-    /* 社交媒体分享按钮 */
     .social-share {
       display: flex;
       justify-content: center;
       gap: 1em;
       margin: 2em 0;
     }
-
     .share-button {
       width: 40px;
       height: 40px;
@@ -268,50 +238,41 @@
       transition: transform 0.3s ease;
       background: rgba(255,255,255,0.1);
     }
-
     .share-button:hover {
       transform: scale(1.1);
     }
-
     .share-button svg {
       width: 20px;
       height: 20px;
       fill: white;
     }
-
     .share-button[data-platform="twitter"]:hover {
       background: var(--twitter-blue);
     }
-
     .share-button[data-platform="facebook"]:hover {
       background: var(--facebook-blue);
     }
-
     .share-button[data-platform="linkedin"]:hover {
       background: var(--linkedin-blue);
     }
   </style>
 </head>
 <body>
-  <!-- 页面加载动画 -->
   <div class="page-loader" id="pageLoader">
     <div class="loader-spinner"></div>
   </div>
 
-  <!-- 背景图片元素 -->
-  <img src="haikei1.JPG" alt="English Background" class="background-image" id="bg-en" loading="lazy" fetchpriority="low">
-  <img src="haikei2.JPG" alt="Japanese Background" class="background-image" id="bg-ja" loading="lazy" fetchpriority="low">
-  <img src="haikei3.JPG" alt="Chinese Background" class="background-image" id="bg-zh" loading="lazy" fetchpriority="low">
+  <img src="haikei1.JPG" alt="English Background" class="background-image" id="bg-en" loading="lazy">
+  <img src="haikei2.JPG" alt="Japanese Background" class="background-image" id="bg-ja" loading="lazy">
+  <img src="haikei3.JPG" alt="Chinese Background" class="background-image" id="bg-zh" loading="lazy">
   <div id="dark-overlay"></div>
 
   <header>
     <h1 data-i18n="title"></h1>
     <p data-i18n="subtitle"></p>
     <div id="avatar-container">
-  <img src="Sakino.JPG" alt="Avatar" class="avatar pulse-avatar" loading="eager" fetchpriority="high"
-       onclick="openGalleryPage()" style="cursor: pointer;">
-</div>
-
+      <img src="Sakino.JPG" alt="Avatar" class="avatar pulse-avatar" loading="eager" id="avatarImage">
+    </div>
     <canvas id="particle-canvas"></canvas>
   </header>
 
@@ -322,7 +283,6 @@
     <a href="https://github.com/Sakino486" target="_blank" data-i18n="githubLink"></a>
     <a href="https://example.com/blog" target="_blank" data-i18n="blogLink"></a>
     
-    <!-- 社交媒体分享按钮 -->
     <div class="social-share">
       <button class="share-button" data-platform="twitter" aria-label="Share on Twitter">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -416,6 +376,7 @@
       constructor() {
         this.lang = localStorage.getItem('lang') || 'ja';
         this.theme = localStorage.getItem('theme') || 'none';
+        console.log("AppController initialized");
         this.init();
       }
 
@@ -429,7 +390,12 @@
         this.setupShareButtons();
         this.trackPageView();
         
-        // 页面加载完成后隐藏加载动画
+        // 直接绑定头像点击事件（确保可靠）
+        document.getElementById('avatarImage').addEventListener('click', () => {
+          this.openGalleryPage();
+        });
+
+        // 页面加载动画
         window.addEventListener('load', () => {
           setTimeout(() => {
             document.getElementById('pageLoader').classList.add('fade-out');
@@ -446,20 +412,15 @@
       }
 
       applyTheme() {
-        // 移除所有主题类
         document.body.classList.remove('dark', 'no-theme');
         
-        // 根据当前主题添加相应类
         if (this.theme === 'dark') {
           document.body.classList.add('dark');
         } else if (this.theme === 'none') {
           document.body.classList.add('no-theme');
         }
         
-        // 设置主题选择器的值
         document.getElementById('theme-select').value = this.theme;
-        
-        // 更新背景显示状态
         this.updateBackgroundVisibility();
       }
 
@@ -467,11 +428,9 @@
         const bgImages = document.querySelectorAll('.background-image');
         
         if (this.theme === 'none') {
-          // 显示背景图
           bgImages.forEach(img => img.style.display = 'block');
           document.getElementById('dark-overlay').classList.remove('active');
         } else {
-          // 隐藏背景图
           bgImages.forEach(img => img.style.display = 'none');
           if (this.theme === 'dark') {
             document.getElementById('dark-overlay').classList.add('active');
@@ -512,7 +471,6 @@
           this.trackPageView();
         });
 
-        // 主题选择器事件
         document.getElementById('theme-select').addEventListener('change', e => {
           this.theme = e.target.value;
           localStorage.setItem('theme', this.theme);
@@ -526,7 +484,7 @@
           window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js')
               .then(registration => {
-                console.log('ServiceWorker registration successful');
+                console.log('ServiceWorker registered');
               })
               .catch(err => {
                 console.log('ServiceWorker registration failed: ', err);
@@ -562,7 +520,6 @@
       }
 
       trackPageView() {
-        // 简单的页面访问统计（实际使用时替换为您的统计端点）
         const analyticsData = {
           page: window.location.href,
           lang: this.lang,
@@ -570,28 +527,67 @@
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent
         };
+        console.log('Page view:', analyticsData);
+      }
+
+      openGalleryPage() {
+        console.log("Opening gallery...");
+        if (this.checkGalleryAuth()) {
+          this.launchGalleryWindow();
+        } else {
+          this.showPasswordModal();
+        }
+      }
+
+      checkGalleryAuth() {
+        const auth = JSON.parse(localStorage.getItem('gallery_auth'));
+        const isValid = auth && auth.authenticated && auth.expires > Date.now();
+        console.log("Auth check:", isValid);
+        return isValid;
+      }
+
+      showPasswordModal() {
+        console.log("Showing password modal");
+        const password = prompt("请输入访问密码（默认密码：010101）:");
+        if (password === "010101") {
+          localStorage.setItem('gallery_auth', JSON.stringify({
+            authenticated: true,
+            expires: Date.now() + 3600000
+          }));
+          this.launchGalleryWindow();
+        } else if (password !== null) {
+          alert("密码错误");
+        }
+      }
+
+      launchGalleryWindow() {
+        console.log("Launching gallery window");
+        const features = 'width=1200,height=800,scrollbars=yes,resizable=yes';
+        const galleryWindow = window.open('gallery.html', 'galleryWindow', features);
         
-        console.log('Page view tracked:', analyticsData);
-        // 实际使用时取消下面的注释
-        // fetch('https://your-analytics-api.com/track', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(analyticsData)
-        // });
+        if (!galleryWindow) {
+          console.warn("Popup blocked, trying fallback");
+          const fallback = confirm("弹窗被阻止，是否在新标签页打开？");
+          if (fallback) {
+            window.location.href = 'gallery.html';
+          }
+        }
       }
     }
 
-    // 图片加载失败处理
+    // 初始化（确保DOM加载完成）
+    document.addEventListener('DOMContentLoaded', () => {
+      const appController = new AppController();
+      window.appController = appController; // 暴露到全局
+    });
+
+    // 图片错误处理
     window.addEventListener('error', (event) => {
       if (event.target.tagName === 'IMG') {
         event.target.style.display = 'none';
-        console.warn('Image failed to load:', event.target.src);
+        console.warn('Image load failed:', event.target.src);
       }
     }, true);
-
-    new AppController();
 
     // 粒子特效
     const canvas = document.getElementById("particle-canvas");
@@ -599,7 +595,6 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     const avatar = document.querySelector(".avatar");
-    const avatarContainer = document.querySelector("#avatar-container");
     
     let rect = avatar.getBoundingClientRect();
     let center = {
@@ -611,13 +606,6 @@
     let attraction = false;
     let emitParticles = true;
     const colors = ["#5396A1", "#FDE6DC", "#FEB396"];
-
-    function isMouseInAvatarCircle(clientX, clientY) {
-      const dx = clientX - center.x;
-      const dy = clientY - center.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance <= avatarRadius;
-    }
 
     class Particle {
       constructor() {
@@ -764,13 +752,19 @@
       };
     });
 
-  // 如果需要在其他地方直接调用，保留全局函数
-  function openGalleryPage() {
-    appController.openGalleryPage();
-  }
+    // 移动端触摸支持
+    if ('ontouchstart' in window) {
+      document.getElementById('avatarImage').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        if (window.appController) {
+          appController.openGalleryPage();
+        }
+      });
+    }
   </script>
 </body>
 </html>
+
 
 
 
