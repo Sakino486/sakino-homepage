@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sakino's Gallery</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #74ebd5;
+      --secondary-color: #9face6;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #f5f7fa, #e4e8f0);
+      min-height: 100vh;
+    }
+    
+    .gallery-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .gallery-header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    .gallery-toolbar {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+    
+    .gallery-item {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    .gallery-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    }
+    
+    .gallery-img-container {
+      height: 200px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .gallery-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    
+    .gallery-item:hover .gallery-img {
+      transform: scale(1.05);
+    }
+    
+    .gallery-caption {
+      padding: 1rem;
+      position: relative;
+    }
+    
+    .gallery-caption-text {
+      margin-bottom: 1rem;
+      min-height: 60px;
+    }
+    
+    .edit-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .gallery-item:hover .edit-overlay {
+      opacity: 1;
+    }
+    
+    .modal-fullscreen {
+      max-width: 90%;
+      width: 90%;
+      height: 90vh;
+    }
+    
+    .upload-area {
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 1rem;
+    }
+    
+    .upload-area:hover {
+      border-color: var(--primary-color);
+      background: rgba(116, 235, 213, 0.1);
+    }
+    
+    .preview-img {
+      max-height: 200px;
+      object-fit: contain;
+    }
+    
+    .tag-badge {
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* 密码保护相关样式 */
+    .password-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    
+    .password-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .edit-mode-banner {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #4CAF50;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    /* 初始隐藏编辑按钮 */
+    .edit-btn, .delete-btn, #addNewBtn {
+      display: none;
+    }
+    
+    @media (max-width: 768px) {
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+      
+      .gallery-toolbar {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 密码保护层 -->
+  <div class="password-overlay" id="passwordOverlay">
+    <div class="password-box">
+      <h3 class="text-center mb-4">需要授权</h3>
+      <div class="mb-3">
+        <label for="passwordInput" class="form-label">请输入编辑密码</label>
+        <input type="password" class="form-control" id="passwordInput" placeholder="密码">
+      </div>
+      <button class="btn btn-primary w-100" id="passwordSubmit">解锁编辑功能</button>
+      <p class="text-muted mt-3 text-center small">提示：密码是Sakino的生日(6位数字)</p>
+    </div>
+  </div>
+
+  <div class="gallery-container">
+    <div class="gallery-header">
+      <h1><i class="fas fa-camera-retro me-2"></i>Sakino's Gallery</h1>
+      <p class="lead">我的创意作品集 - 点击图片可编辑</p>
+    </div>
+    
+    <div class="gallery-toolbar">
+      <div>
+        <button class="btn btn-primary me-2" id="addNewBtn">
+          <i class="fas fa-plus me-1"></i>添加新作品
+        </button>
+        <button class="btn btn-outline-secondary" id="filterBtn">
+          <i class="fas fa-filter me-1"></i>筛选
+        </button>
+      </div>
+      <div class="d-flex">
+        <div class="input-group" style="width: 250px;">
+          <input type="text" class="form-control" placeholder="搜索作品..." id="searchInput">
+          <button class="btn btn-outline-secondary" type="button">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="gallery-grid" id="galleryGrid">
+      <!-- 画廊项目将通过JavaScript动态加载 -->
+    </div>
+  </div>
+
+  <!-- 添加/编辑作品的模态框 -->
+  <div class="modal fade" id="galleryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle">添加新作品</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="galleryForm">
+            <input type="hidden" id="itemId">
+            
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="upload-area" id="uploadArea">
+                  <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-muted"></i>
+                  <h5>拖放图片到此处或点击选择</h5>
+                  <p class="text-muted">支持JPG, PNG格式，最大5MB</p>
+                  <input type="file" id="imageUpload" accept="image/*" class="d-none">
+                </div>
+                <div class="text-center mt-3" id="imagePreviewContainer" style="display: none;">
+                  <img src="" alt="预览图" class="img-thumbnail preview-img" id="imagePreview">
+                  <button type="button" class="btn btn-sm btn-outline-danger mt-2" id="removeImageBtn">
+                    <i class="fas fa-trash me-1"></i>移除图片
+                  </button>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="imageTitle" class="form-label">作品标题</label>
+                  <input type="text" class="form-control" id="imageTitle" required>
+                </div>
+                <div class="mb-3">
+                  <label for="imageDescription" class="form-label">作品描述</label>
+                  <textarea class="form-control" id="imageDescription" rows="5"></textarea>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">标签</label>
+                  <div class="d-flex align-items-center mb-2">
+                    <input type="text" class="form-control me-2" id="tagInput" placeholder="添加标签">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addTagBtn">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                  <div id="tagsContainer"></div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">创作日期</label>
+                  <input type="date" class="form-control" id="creationDate">
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" id="saveItemBtn">保存作品</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript 库 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+  <script>
+    // 画廊数据（实际项目中应从服务器获取）
+    let galleryData = [
+      {
+        id: 1,
+        title: "春日樱花",
+        description: "拍摄于东京上野公园的樱花季节，展现了春天的气息。",
+        imageUrl: "https://source.unsplash.com/random/600x400/?cherry-blossom",
+        tags: ["自然", "樱花", "春天"],
+        date: "2023-04-05"
+      },
+      {
+        id: 2,
+        title: "城市夜景",
+        description: "东京塔与城市灯光的完美结合，长曝光拍摄。",
+        imageUrl: "https://source.unsplash.com/random/600x400/?tokyo-night",
+        tags: ["城市", "夜景", "东京"],
+        date: "2023-05-12"
+      },
+      {
+        id: 3,
+        title: "海边日落",
+        description: "冲绳海滩的日落时分，温暖的色调让人平静。",
+        imageUrl: "https://source.unsplash.com/random/600x400/?beach-sunset",
+        tags: ["自然", "海滩", "日落"],
+        date: "2023-07-22"
+      }
+    ];
+
+    // 密码验证系统
+    const CORRECT_PASSWORD = "010101"; // 示例密码，请更改为您自己的密码
+    const PASSWORD_KEY = "gallery_edit_auth";
+    
+    // 检查是否已认证
+    function checkAuth() {
+      return localStorage.getItem(PASSWORD_KEY) === CORRECT_PASSWORD;
+    }
+    
+    // 初始化编辑模式
+    function initEditMode() {
+      // 显示编辑模式标识
+      const banner = document.createElement('div');
+      banner.className = 'edit-mode-banner';
+      banner.innerHTML = '<i class="fas fa-edit me-1"></i>编辑模式已激活';
+      document.body.appendChild(banner);
+      
+      // 启用所有编辑功能
+      document.getElementById('addNewBtn').style.display = 'block';
+      
+      // 为所有编辑按钮添加事件
+      document.querySelectorAll('.edit-btn, .delete-btn').forEach(btn => {
+        btn.style.display = 'block';
+      });
+    }
+
+    // DOM元素
+    const galleryGrid = document.getElementById('galleryGrid');
+    const galleryModal = new bootstrap.Modal('#galleryModal');
+    const galleryForm = document.getElementById('galleryForm');
+    const uploadArea = document.getElementById('uploadArea');
+    const imageUpload = document.getElementById('imageUpload');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const removeImageBtn = document.getElementById('removeImageBtn');
+    const addTagBtn = document.getElementById('addTagBtn');
+    const tagInput = document.getElementById('tagInput');
+    const tagsContainer = document.getElementById('tagsContainer');
+    const saveItemBtn = document.getElementById('saveItemBtn');
+    const addNewBtn = document.getElementById('addNewBtn');
+    const searchInput = document.getElementById('searchInput');
+    const passwordOverlay = document.getElementById('passwordOverlay');
+    const passwordSubmit = document.getElementById('passwordSubmit');
+    const passwordInput = document.getElementById('passwordInput');
+
+    // 当前编辑的项目
+    let currentItem = null;
+    let uploadedImage = null;
+
+    // 初始化画廊
+    function initGallery() {
+      renderGalleryItems(galleryData);
+      setupEventListeners();
+      
+      // 检查认证状态
+      if (checkAuth()) {
+        passwordOverlay.style.display = 'none';
+        initEditMode();
+      }
+    }
+
+    // 渲染画廊项目
+    function renderGalleryItems(items) {
+      galleryGrid.innerHTML = '';
+      
+      items.forEach(item => {
+        const galleryItem = document.createElement('div');
+        galleryItem.className = 'gallery-item';
+        galleryItem.dataset.id = item.id;
+        
+        galleryItem.innerHTML = `
+          <div class="gallery-img-container">
+            <img src="${item.imageUrl}" alt="${item.title}" class="gallery-img">
+            <div class="edit-overlay">
+              <button class="btn btn-light btn-sm edit-btn" data-id="${item.id}">
+                <i class="fas fa-edit me-1"></i>编辑
+              </button>
+              <button class="btn btn-danger btn-sm mt-2 delete-btn" data-id="${item.id}">
+                <i class="fas fa-trash me-1"></i>删除
+              </button>
+            </div>
+          </div>
+          <div class="gallery-caption">
+            <h5 class="gallery-caption-text">${item.title}</h5>
+            <div class="d-flex flex-wrap">
+              ${item.tags.map(tag => `<span class="badge bg-secondary tag-badge">${tag}</span>`).join('')}
+            </div>
+          </div>
+        `;
+        
+        galleryGrid.appendChild(galleryItem);
+      });
+    }
+
+    // 设置事件监听器
+    function setupEventListeners() {
+      // 密码提交处理
+      passwordSubmit.addEventListener('click', () => {
+        const password = passwordInput.value.trim();
+        
+        if (password === CORRECT_PASSWORD) {
+          // 密码正确，保存认证状态
+          localStorage.setItem(PASSWORD_KEY, password);
+          passwordOverlay.style.display = 'none';
+          initEditMode();
+        } else {
+          alert('密码错误，请重试');
+          passwordInput.value = '';
+        }
+      });
+
+      // 添加新作品按钮
+      addNewBtn.addEventListener('click', () => {
+        if (!checkAuth()) {
+          alert('请先验证编辑权限');
+          passwordOverlay.style.display = 'flex';
+          return;
+        }
+        
+        currentItem = null;
+        uploadedImage = null;
+        galleryForm.reset();
+        tagsContainer.innerHTML = '';
+        imagePreviewContainer.style.display = 'none';
+        document.getElementById('modalTitle').textContent = '添加新作品';
+        galleryModal.show();
+      });
+
+      // 上传区域点击事件
+      uploadArea.addEventListener('click', () => imageUpload.click());
+      
+      // 图片上传处理
+      imageUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          if (file.size > 5 * 1024 * 1024) {
+            alert('图片大小不能超过5MB');
+            return;
+          }
+          
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            uploadedImage = event.target.result;
+            imagePreview.src = uploadedImage;
+            imagePreviewContainer.style.display = 'block';
+            uploadArea.style.display = 'none';
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // 移除图片按钮
+      removeImageBtn.addEventListener('click', () => {
+        uploadedImage = null;
+        imagePreview.src = '';
+        imagePreviewContainer.style.display = 'none';
+        uploadArea.style.display = 'block';
+        imageUpload.value = '';
+      });
+
+      // 添加标签按钮
+      addTagBtn.addEventListener('click', addTag);
+      tagInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          addTag();
+        }
+      });
+
+      // 保存作品按钮
+      saveItemBtn.addEventListener('click', saveGalleryItem);
+
+      // 搜索功能
+      searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredItems = galleryData.filter(item => 
+          item.title.toLowerCase().includes(searchTerm) || 
+          item.description.toLowerCase().includes(searchTerm) ||
+          item.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+        );
+        renderGalleryItems(filteredItems);
+      });
+
+      // 委托编辑和删除按钮事件
+      galleryGrid.addEventListener('click', (e) => {
+        if (e.target.closest('.edit-btn')) {
+          if (!checkAuth()) {
+            alert('请先验证编辑权限');
+            passwordOverlay.style.display = 'flex';
+            return;
+          }
+          
+          const itemId = parseInt(e.target.closest('.edit-btn').dataset.id);
+          editGalleryItem(itemId);
+        }
+        
+        if (e.target.closest('.delete-btn')) {
+          if (!checkAuth()) {
+            alert('请先验证编辑权限');
+            passwordOverlay.style.display = 'flex';
+            return;
+          }
+          
+          const itemId = parseInt(e.target.closest('.delete-btn').dataset.id);
+          deleteGalleryItem(itemId);
+        }
+      });
+    }
+
+    // 添加标签
+    function addTag() {
+      const tagText = tagInput.value.trim();
+      if (tagText && !tagsContainer.querySelector(`.tag-badge[data-tag="${tagText}"]`)) {
+        const tagElement = document.createElement('span');
+        tagElement.className = 'badge bg-primary tag-badge me-2 mb-2';
+        tagElement.dataset.tag = tagText;
+        tagElement.innerHTML = `
+          ${tagText}
+          <button class="btn-close btn-close-white btn-close-tag ms-1" aria-label="Remove"></button>
+        `;
+        tagsContainer.appendChild(tagElement);
+        tagInput.value = '';
+        
+        // 添加删除标签按钮事件
+        tagElement.querySelector('.btn-close-tag').addEventListener('click', (e) => {
+          e.stopPropagation();
+          tagElement.remove();
+        });
+      }
+    }
+
+    // 编辑作品
+    function editGalleryItem(id) {
+      currentItem = galleryData.find(item => item.id === id);
+      if (currentItem) {
+        document.getElementById('modalTitle').textContent = '编辑作品';
+        document.getElementById('itemId').value = currentItem.id;
+        document.getElementById('imageTitle').value = currentItem.title;
+        document.getElementById('imageDescription').value = currentItem.description;
+        document.getElementById('creationDate').value = currentItem.date;
+        
+        // 设置图片
+        if (currentItem.imageUrl) {
+          uploadedImage = currentItem.imageUrl;
+          imagePreview.src = currentItem.imageUrl;
+          imagePreviewContainer.style.display = 'block';
+          uploadArea.style.display = 'none';
+        } else {
+          imagePreviewContainer.style.display = 'none';
+          uploadArea.style.display = 'block';
+        }
+        
+        // 设置标签
+        tagsContainer.innerHTML = '';
+        currentItem.tags.forEach(tag => {
+          const tagElement = document.createElement('span');
+          tagElement.className = 'badge bg-primary tag-badge me-2 mb-2';
+          tagElement.dataset.tag = tag;
+          tagElement.innerHTML = `
+            ${tag}
+            <button class="btn-close btn-close-white btn-close-tag ms-1" aria-label="Remove"></button>
+          `;
+          tagsContainer.appendChild(tagElement);
+          
+          // 添加删除标签按钮事件
+          tagElement.querySelector('.btn-close-tag').addEventListener('click', (e) => {
+            e.stopPropagation();
+            tagElement.remove();
+          });
+        });
+        
+        galleryModal.show();
+      }
+    }
+
+    // 保存作品
+    function saveGalleryItem() {
+      if (!checkAuth()) {
+        alert('请先验证编辑权限');
+        passwordOverlay.style.display = 'flex';
+        return;
+      }
+      
+      const title = document.getElementById('imageTitle').value.trim();
+      const description = document.getElementById('imageDescription').value.trim();
+      const date = document.getElementById('creationDate').value;
+      
+      if (!title) {
+        alert('请输入作品标题');
+        return;
+      }
+      
+      if (!uploadedImage) {
+        alert('请上传作品图片');
+        return;
+      }
+      
+      // 获取所有标签
+      const tags = Array.from(tagsContainer.querySelectorAll('.tag-badge')).map(el => el.dataset.tag);
+      
+      const itemData = {
+        id: currentItem ? currentItem.id : Date.now(),
+        title,
+        description,
+        imageUrl: uploadedImage,
+        tags,
+        date: date || new Date().toISOString().split('T')[0]
+      };
+      
+      if (currentItem) {
+        // 更新现有项目
+        const index = galleryData.findIndex(item => item.id === currentItem.id);
+        galleryData[index] = itemData;
+      } else {
+        // 添加新项目
+        galleryData.unshift(itemData);
+      }
+      
+      renderGalleryItems(galleryData);
+      galleryModal.hide();
+      
+      // 在实际项目中，这里应该发送数据到服务器
+      console.log('保存的作品数据:', itemData);
+    }
+
+    // 删除作品
+    function deleteGalleryItem(id) {
+      if (!checkAuth()) {
+        alert('请先验证编辑权限');
+        passwordOverlay.style.display = 'flex';
+        return;
+      }
+      
+      if (confirm('确定要删除这个作品吗？')) {
+        galleryData = galleryData.filter(item => item.id !== id);
+        renderGalleryItems(galleryData);
+        
+        // 在实际项目中，这里应该发送删除请求到服务器
+        console.log('删除的作品ID:', id);
+      }
+    }
+
+    // 拖放排序功能
+    new Sortable(galleryGrid, {
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      onEnd: () => {
+        // 在实际项目中，这里应该保存新的排序到服务器
+        console.log('画廊项目顺序已更改');
+      }
+    });
+
+    // 初始化画廊
+    document.addEventListener('DOMContentLoaded', initGallery);
+  </script>
+</body>
+</html>
