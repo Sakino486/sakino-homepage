@@ -308,8 +308,10 @@
     <h1 data-i18n="title"></h1>
     <p data-i18n="subtitle"></p>
     <div id="avatar-container">
-      <img src="Sakino.JPG" alt="Avatar" class="avatar pulse-avatar" loading="eager" fetchpriority="high">
-    </div>
+  <img src="Sakino.JPG" alt="Avatar" class="avatar pulse-avatar" loading="eager" fetchpriority="high"
+       onclick="openGalleryPage()" style="cursor: pointer;">
+</div>
+
     <canvas id="particle-canvas"></canvas>
   </header>
 
@@ -761,6 +763,32 @@
         y: rect.top + rect.height / 2
       };
     });
+    // 打开画廊页面的函数
+function openGalleryPage() {
+  // 新窗口打开gallery.html，设置窗口尺寸为800x600
+  const features = 'width=800,height=600,scrollbars=yes,resizable=yes';
+  window.open('gallery.html', 'galleryWindow', features);
+  
+  // 调试用（可选）
+  console.log('头像被点击，正在打开画廊页面...');
+}
+
+// 如果使用类形式（根据您现有代码结构选择）
+class AppController {
+  constructor() {
+    // 其他初始化代码...
+  }
+
+  openGalleryPage() {
+    const features = 'width=800,height=600,scrollbars=yes,resizable=yes';
+    window.open('gallery.html', 'galleryWindow', features);
+    console.log('画廊页面已打开');
+  }
+}
+
+// 初始化控制器（如果使用类形式）
+const appController = new AppController();
+
   </script>
 </body>
 </html>
