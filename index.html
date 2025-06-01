@@ -536,6 +536,14 @@ center = {
       };
     });
   </script>
+  function toggleDarkMode(isDark) {
+  const overlay = document.getElementById('dark-overlay');
+  if (isDark) {
+    overlay.classList.add('active'); // 淡入
+  } else {
+    overlay.classList.remove('active'); // 淡出
+  }
+}
 </body>
 </html>
 
