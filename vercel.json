@@ -1,11 +1,11 @@
 {
   "headers": [
     {
-      "source": "/(.*)",  // 匹配所有路径
+      "source": "/(.*)",  
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-store, max-age=0"  // 完全禁用缓存
+          "value": "no-store, max-age=0" 
         }
       ]
     }
