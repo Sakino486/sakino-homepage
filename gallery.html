@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sakino's Gallery</title>
+  <title>Sakino's Gallery & Shuoshuo</title>
   <style>
     :root {
       --primary-color: #74ebd5;
@@ -28,13 +28,45 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     
+    .tab-container {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    
+    .tab-btn {
+      padding: 10px 20px;
+      margin: 0 5px;
+      background: #ddd;
+      border: none;
+      border-radius: 5px 5px 0 0;
+      cursor: pointer;
+    }
+    
+    .tab-btn.active {
+      background: white;
+      font-weight: bold;
+    }
+    
+    .content-section {
+      display: none;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: white;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .content-section.active {
+      display: block;
+    }
+    
+    /* 画廊样式 */
     .gallery-container {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 20px;
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
     }
     
     .gallery-item {
@@ -58,6 +90,173 @@
       cursor: pointer;
     }
     
+    /* 说说样式 */
+    .post-editor {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .post {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: relative;
+      background-size: cover;
+      background-position: center;
+    }
+    
+    .post-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 15px;
+    }
+    
+    .user-info {
+      flex: 1;
+    }
+    
+    .nickname {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .post-time {
+      color: #888;
+      font-size: 0.8rem;
+    }
+    
+    .post-content {
+      margin: 15px 0;
+      line-height: 1.6;
+      min-height: 50px;
+    }
+    
+    .post-images {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .post-image {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .toolbar {
+      display: flex;
+      margin-bottom: 15px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #f0f0f0;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .font-selector, .color-selector {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    
+    .background-selector {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      z-index: 10;
+      width: 200px;
+    }
+    
+    .background-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      margin-top: 10px;
+    }
+    
+    .background-option {
+      width: 100%;
+      height: 50px;
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    
+    .background-option:hover {
+      border-color: var(--primary-color);
+    }
+    
+    #contentEditor {
+      width: 100%;
+      min-height: 100px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      font-family: inherit;
+    }
+    
+    /* 灯箱样式 */
+    .lightbox {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .lightbox-content {
+      max-width: 80%;
+      max-height: 80%;
+    }
+    
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+    
+    /* 管理员控制 */
     .admin-controls {
       position: fixed;
       bottom: 20px;
@@ -110,33 +309,6 @@
       z-index: 100;
     }
     
-    .lightbox {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.9);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    
-    .lightbox-content {
-      max-width: 80%;
-      max-height: 80%;
-    }
-    
-    .lightbox-close {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      color: white;
-      font-size: 2rem;
-      cursor: pointer;
-    }
-    
     @media (max-width: 768px) {
       .gallery-container {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -146,11 +318,56 @@
 </head>
 <body>
   <header>
-    <h1>Sakino's Gallery</h1>
+    <h1>Sakino's Gallery & Shuoshuo</h1>
     <p id="status">正在加载...</p>
   </header>
   
-  <div class="gallery-container" id="gallery"></div>
+  <div class="tab-container">
+    <button class="tab-btn active" data-tab="gallery">画廊</button>
+    <button class="tab-btn" data-tab="shuoshuo">说说</button>
+  </div>
+  
+  <div class="content-section active" id="gallery-section">
+    <div class="gallery-container" id="gallery"></div>
+  </div>
+  
+  <div class="content-section" id="shuoshuo-section">
+    <div class="post-editor">
+      <h2>发布新说说</h2>
+      <div class="toolbar">
+        <select class="font-selector" id="fontSelector">
+          <option value="Arial">Arial</option>
+          <option value="Times New Roman">Times New Roman</option>
+          <option value="Courier New">Courier New</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Verdana">Verdana</option>
+          <option value="宋体">宋体</option>
+          <option value="微软雅黑">微软雅黑</option>
+        </select>
+        
+        <input type="color" class="color-selector" id="colorSelector" value="#000000">
+        
+        <button class="btn" id="bgBtn">选择背景</button>
+        <div class="background-selector" id="bgSelector">
+          <p>选择背景图:</p>
+          <div class="background-options" id="bgOptions">
+            <!-- 背景选项将通过JS动态添加 -->
+          </div>
+        </div>
+      </div>
+      
+      <div id="contentEditor" contenteditable="true" placeholder="写下你想说的话..."></div>
+      
+      <div>
+        <input type="file" id="imageUpload" accept="image/*" multiple>
+        <button class="btn btn-primary" id="publishBtn">发布</button>
+      </div>
+    </div>
+    
+    <div id="postsContainer">
+      <!-- 说说内容将通过JS动态添加 -->
+    </div>
+  </div>
   
   <div class="admin-controls">
     <button class="admin-btn" id="uploadBtn" title="上传文件">➕</button>
@@ -181,13 +398,53 @@
     
     // ===== 状态管理 =====
     let isAuthenticated = localStorage.getItem('gallery_auth') === 'true';
+    let currentTab = 'gallery';
+    
+    // 用户信息
+    const userInfo = {
+      avatar: 'https://via.placeholder.com/50', // 默认头像，可以替换为你的头像
+      nickname: 'Sakino',
+      bgImages: [] // 背景图数组
+    };
     
     // ===== 初始化 =====
     document.addEventListener('DOMContentLoaded', () => {
       checkAuthStatus();
       loadGallery();
+      loadPosts();
+      
+      // 绑定事件
       document.getElementById('uploadBtn').addEventListener('click', toggleUploadPanel);
+      
+      // 说说功能事件
+      document.getElementById('fontSelector').addEventListener('change', changeFont);
+      document.getElementById('colorSelector').addEventListener('input', changeColor);
+      document.getElementById('bgBtn').addEventListener('click', toggleBgSelector);
+      document.getElementById('publishBtn').addEventListener('click', publishPost);
+      
+      // 标签切换
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', switchTab);
+      });
     });
+    
+    // ===== 标签切换 =====
+    function switchTab(e) {
+      const tabId = e.target.dataset.tab;
+      currentTab = tabId;
+      
+      // 更新按钮状态
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      e.target.classList.add('active');
+      
+      // 显示对应内容
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(`${tabId}-section`).classList.add('active');
+    }
     
     // ===== 画廊功能 =====
     async function loadGallery() {
@@ -218,6 +475,164 @@
       `).join('');
     }
     
+    // ===== 说说功能 =====
+    function changeFont() {
+      const font = this.value;
+      document.execCommand('fontName', false, font);
+      document.getElementById('contentEditor').focus();
+    }
+    
+    function changeColor() {
+      const color = this.value;
+      document.execCommand('foreColor', false, color);
+      document.getElementById('contentEditor').focus();
+    }
+    
+    function toggleBgSelector() {
+      const selector = document.getElementById('bgSelector');
+      selector.style.display = selector.style.display === 'block' ? 'none' : 'block';
+      
+      if (selector.style.display === 'block' && document.getElementById('bgOptions').children.length === 0) {
+        loadBackgroundOptions();
+      }
+    }
+    
+    function loadBackgroundOptions() {
+      const bgOptions = document.getElementById('bgOptions');
+      
+      // 默认添加几个背景选项
+      const defaultBgs = [
+        'linear-gradient(135deg, #74ebd5 0%, #9face6 100%)',
+        'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+        'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+        'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
+        'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)',
+        'linear-gradient(135deg, #a6c1ee 0%, #fbc2eb 100%)'
+      ];
+      
+      defaultBgs.forEach((bg, index) => {
+        const option = document.createElement('div');
+        option.className = 'background-option';
+        option.style.background = bg;
+        option.dataset.bg = bg;
+        option.addEventListener('click', () => selectBackground(bg));
+        bgOptions.appendChild(option);
+        
+        userInfo.bgImages.push({
+          id: `bg-${index}`,
+          type: 'gradient',
+          value: bg
+        });
+      });
+    }
+    
+    function selectBackground(bg) {
+      document.getElementById('contentEditor').style.background = bg;
+      document.getElementById('bgSelector').style.display = 'none';
+    }
+    
+    function publishPost() {
+      const editor = document.getElementById('contentEditor');
+      const content = editor.innerHTML;
+      const imagesInput = document.getElementById('imageUpload');
+      
+      if (!content.trim() && imagesInput.files.length === 0) {
+        alert('内容或图片不能为空');
+        return;
+      }
+      
+      const bgStyle = editor.style.background || '';
+      
+      const newPost = {
+        id: Date.now(),
+        avatar: userInfo.avatar,
+        nickname: userInfo.nickname,
+        time: new Date().toLocaleString(),
+        content: content,
+        images: [],
+        background: bgStyle
+      };
+      
+      if (imagesInput.files.length > 0) {
+        for (let i = 0; i < imagesInput.files.length; i++) {
+          const file = imagesInput.files[i];
+          const reader = new FileReader();
+          
+          reader.onload = function(e) {
+            newPost.images.push(e.target.result);
+            
+            if (newPost.images.length === imagesInput.files.length) {
+              savePost(newPost);
+            }
+          };
+          
+          reader.readAsDataURL(file);
+        }
+      } else {
+        savePost(newPost);
+      }
+    }
+    
+    function savePost(post) {
+      let posts = JSON.parse(localStorage.getItem('posts')) || [];
+      posts.unshift(post);
+      localStorage.setItem('posts', JSON.stringify(posts));
+      loadPosts();
+      resetEditor();
+    }
+    
+    function resetEditor() {
+      document.getElementById('contentEditor').innerHTML = '';
+      document.getElementById('contentEditor').style.background = '';
+      document.getElementById('imageUpload').value = '';
+    }
+    
+    function loadPosts() {
+      const postsContainer = document.getElementById('postsContainer');
+      const posts = JSON.parse(localStorage.getItem('posts')) || [];
+      
+      postsContainer.innerHTML = '';
+      
+      if (posts.length === 0) {
+        postsContainer.innerHTML = '<p>还没有说说，发布第一条吧！</p>';
+        return;
+      }
+      
+      posts.forEach(post => {
+        const postEl = document.createElement('div');
+        postEl.className = 'post';
+        postEl.style.background = post.background;
+        
+        postEl.innerHTML = `
+          <div class="post-header">
+            <img src="${post.avatar}" class="avatar" alt="${post.nickname}">
+            <div class="user-info">
+              <div class="nickname">${post.nickname}</div>
+              <div class="post-time">${post.time}</div>
+            </div>
+          </div>
+          <div class="post-content">${post.content}</div>
+        `;
+        
+        if (post.images && post.images.length > 0) {
+          const imagesContainer = document.createElement('div');
+          imagesContainer.className = 'post-images';
+          
+          post.images.forEach(img => {
+            const imgEl = document.createElement('img');
+            imgEl.src = img;
+            imgEl.className = 'post-image';
+            imgEl.addEventListener('click', () => openLightbox(img, 'image'));
+            imagesContainer.appendChild(imgEl);
+          });
+          
+          postEl.appendChild(imagesContainer);
+        }
+        
+        postsContainer.appendChild(postEl);
+      });
+    }
+    
     // ===== 认证管理 =====
     function checkAuthStatus() {
       if (isAuthenticated) {
@@ -234,7 +649,6 @@
       const password = document.getElementById('password').value;
       const hashed = await sha256(password);
       
-      // 默认密码: sakino123 的SHA256值
       if (hashed === 'a7ad9618cc9a53cc8fd44f27383f0fb58d5808ae0d8b5888935ffd30e20713b3') {
         isAuthenticated = true;
         localStorage.setItem('gallery_auth', 'true');
@@ -286,7 +700,7 @@
         status.textContent = `成功上传 ${successCount}/${files.length} 个文件`;
         
         if (successCount > 0) {
-          loadGallery(); // 刷新画廊
+          loadGallery();
         }
         
       } catch (error) {
@@ -327,7 +741,6 @@
     }
     
     async function sha256(message) {
-      // 浏览器原生SHA256实现
       const msgBuffer = new TextEncoder().encode(message);
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
