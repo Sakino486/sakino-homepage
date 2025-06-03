@@ -1,14 +1,25 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <script>
+  // 强制注销所有Service Worker并清除缓存
+  (function() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then(regs => Promise.all(regs.map(reg => reg.unregister())))
+        .then(() => caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))))
+        .then(() => console.log('Service Worker已注销，缓存已清除'))
+        .catch(err => console.error('清理失败:', err));
+    }
+  })();
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sakino's Portal</title>
+  <title>Sakino's Homepage</title>
   <meta name="theme-color" content="#74ebd5">
   <link rel="manifest" href="/manifest.json">
   <style>
     :root {
-      --primary-color: #74ebd5;
       --bg-light: linear-gradient(270deg, #74ebd5, #9face6);
       --bg-dark: linear-gradient(270deg, #232526, #414345);
       --text-light: #fff;
@@ -16,46 +27,8 @@
       --twitter-blue: #1DA1F2;
       --facebook-blue: #4267B2;
       --linkedin-blue: #0077B5;
-      --gallery-bg: #f5f5f5;
-      --dark-bg: #232526;
     }
 
-    /* 全局基础样式 */
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      color: var(--text-dark);
-      text-align: center;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      transition: background 0.5s, color 0.5s;
-    }
-
-    /* 主站特定样式 */
-    body.portal {
-      background: var(--bg-light);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-    }
-    
-    body.portal.dark {
-      background: var(--bg-dark);
-    }
-    
-    body.portal.no-theme {
-      background: none;
-      animation: none;
-    }
-
-    /* 画廊特定样式 */
-    body.gallery {
-      background-color: var(--gallery-bg);
-      color: #333;
-    }
-
-    /* 共享组件样式 */
     .page-loader {
       position: fixed;
       top: 0;
@@ -69,12 +42,10 @@
       align-items: center;
       transition: opacity 0.5s ease-out;
     }
-    
     .page-loader.fade-out {
       opacity: 0;
       pointer-events: none;
     }
-    
     .loader-spinner {
       width: 50px;
       height: 50px;
@@ -83,38 +54,40 @@
       border-top-color: #fff;
       animation: spin 1s ease-in-out infinite;
     }
-
-    header {
-      padding: 2rem 0;
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-light);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: var(--text-light);
+      text-align: center;
+      transition: background 0.5s, color 0.5s;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
       position: relative;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    
-    .portal header {
-      background: transparent;
-      padding: 4em 0 2em;
-      animation: fadeIn 2s forwards;
-      opacity: 0;
-      transform: translateY(-20px);
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
     }
-    
-    .gallery header {
-      background: linear-gradient(270deg, #74ebd5, #9face6);
-      color: white;
+    body.no-theme {
+      background: none;
+      animation: none;
     }
-
     h1, h2, p, footer p {
       text-shadow: 
         0 0 1px rgba(0, 0, 0, 0.7),
         0 0 0.5px rgba(0, 0, 0, 0.9);
     }
-
     .button, .language-select, a {
       text-shadow: 
         0 0 0.7px rgba(0, 0, 0, 0.8);
     }
-
-    /* 背景图片样式 */
     .background-image {
       position: fixed;
       top: 0;
@@ -126,11 +99,9 @@
       opacity: 0;
       transition: opacity 1.5s ease;
     }
-    
     .background-image.active {
       opacity: 0.7;
     }
-    
     #dark-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -140,20 +111,54 @@
       transition: opacity 0.5s ease;
       z-index: 0;
     }
-    
     #dark-overlay.active {
       opacity: 1;
     }
-
-    /* 主站特有元素 */
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    header {
+      padding: 4em 0 2em;
+      animation: fadeIn 2s forwards;
+      opacity: 0;
+      transform: translateY(-20px);
+      position: relative;
+    }
+    main {
+      padding: 2em;
+      animation: fadeIn 3s forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    footer {
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 0.9em;
+      padding: 2em 1em;
+      margin-top: auto;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion) {
+      header, main { animation: none; opacity: 1; transform: none; }
+    }
     #avatar-container {
       position: relative;
       display: inline-block;
       width: 180px;
       height: 180px;
-      cursor: pointer;
     }
-    
+    canvas#particle-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+    }
     img.avatar {
       width: 180px;
       height: 180px;
@@ -162,122 +167,12 @@
       border: 3px solid rgba(255, 255, 255, 0.3);
       position: relative;
       z-index: 1;
+      cursor: pointer;
       transition: transform 0.3s;
     }
-    
     img.avatar:hover {
       transform: scale(1.05);
     }
-    
-    .pulse-avatar {
-      animation: avatarPulse 3s ease-in-out infinite;
-      transform-origin: center center;
-    }
-
-    /* 画廊特有元素 */
-    .gallery-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    .gallery-item {
-      position: relative;
-      overflow: hidden;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transition: transform 0.3s;
-      aspect-ratio: 1;
-    }
-    
-    .gallery-item:hover {
-      transform: translateY(-5px);
-    }
-    
-    .gallery-item img,
-    .gallery-item video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      cursor: pointer;
-    }
-    
-    .admin-controls {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 100;
-    }
-    
-    .admin-btn {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      font-size: 1.2rem;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    
-    .auth-panel {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      z-index: 1000;
-      text-align: center;
-    }
-    
-    .upload-panel {
-      display: none;
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      right: 20px;
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-      z-index: 100;
-    }
-    
-    .lightbox {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.9);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    
-    .lightbox-content {
-      max-width: 80%;
-      max-height: 80%;
-    }
-    
-    .lightbox-close {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      color: white;
-      font-size: 2rem;
-      cursor: pointer;
-    }
-
-    /* 共享UI组件 */
     .btn-group {
       display: flex;
       gap: 1em;
@@ -286,7 +181,6 @@
       max-width: 400px;
       margin: 20px auto;
     }
-    
     .button {
       background-color: rgba(255, 255, 255, 0.1);
       color: #fff;
@@ -296,13 +190,11 @@
       cursor: pointer;
       transition: all 0.3s ease;
     }
-    
     .button:hover {
       background-color: #fff;
       color: #333;
       transform: scale(1.05);
     }
-    
     a {
       display: inline-block;
       margin: 1em;
@@ -313,13 +205,11 @@
       text-decoration: none;
       transition: all 0.3s ease;
     }
-    
     a:hover {
       background-color: #fff;
       color: #333;
       transform: scale(1.05);
     }
-    
     .language-select, .theme-select {
       background-color: rgba(255, 255, 255, 0.1);
       color: #fff;
@@ -333,14 +223,21 @@
       background-position: right 0.7em center;
       background-size: 1em;
     }
-    
+    @keyframes avatarPulse {
+      0%   { transform: scale(0.96); }
+      50%  { transform: scale(1.08); }
+      100% { transform: scale(0.96); }
+    }
+    .pulse-avatar {
+      animation: avatarPulse 3s ease-in-out infinite;
+      transform-origin: center center;
+    }
     .social-share {
       display: flex;
       justify-content: center;
       gap: 1em;
       margin: 2em 0;
     }
-    
     .share-button {
       width: 40px;
       height: 40px;
@@ -353,186 +250,85 @@
       transition: transform 0.3s ease;
       background: rgba(255,255,255,0.1);
     }
-    
     .share-button:hover {
       transform: scale(1.1);
     }
-    
     .share-button svg {
       width: 20px;
       height: 20px;
       fill: white;
     }
-    
     .share-button[data-platform="twitter"]:hover {
       background: var(--twitter-blue);
     }
-    
     .share-button[data-platform="facebook"]:hover {
       background: var(--facebook-blue);
     }
-    
     .share-button[data-platform="linkedin"]:hover {
       background: var(--linkedin-blue);
     }
-
-    /* 粒子画布 */
-    canvas#particle-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* 动画定义 */
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    
-    @keyframes fadeIn {
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    @keyframes avatarPulse {
-      0%   { transform: scale(0.96); }
-      50%  { transform: scale(1.08); }
-      100% { transform: scale(0.96); }
-    }
-
-    /* 响应式设计 */
-    @media (max-width: 768px) {
-      .gallery-container {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      }
-      
-      #avatar-container {
-        width: 120px;
-        height: 120px;
-      }
-      
-      img.avatar {
-        width: 120px;
-        height: 120px;
-      }
-    }
-
-    @media (prefers-reduced-motion) {
-      header, main { animation: none; opacity: 1; transform: none; }
-    }
   </style>
 </head>
-<body class="portal">
-  <!-- 页面加载器 -->
+<body>
   <div class="page-loader" id="pageLoader">
     <div class="loader-spinner"></div>
   </div>
 
-  <!-- 背景元素 -->
   <img src="haikei1.JPG" alt="English Background" class="background-image" id="bg-en" loading="lazy">
   <img src="haikei2.JPG" alt="Japanese Background" class="background-image" id="bg-ja" loading="lazy">
   <img src="haikei3.JPG" alt="Chinese Background" class="background-image" id="bg-zh" loading="lazy">
   <div id="dark-overlay"></div>
 
-  <!-- 主站内容 -->
-  <div id="portalContent">
-    <header>
-      <a href="index.html" class="home-link" style="position:absolute; left:20px; color:inherit;">← Home</a>
-      <h1 data-i18n="title"></h1>
-      <p data-i18n="subtitle"></p>
-      <div id="avatar-container">
-        <img src="Sakino.JPG" alt="Avatar" class="avatar pulse-avatar" loading="eager" id="avatarImage">
-      </div>
-      <canvas id="particle-canvas"></canvas>
-    </header>
-
-    <main>
-      <h2 data-i18n="introTitle"></h2>
-      <p data-i18n="introContent"></p>
-      <h2 data-i18n="linksTitle"></h2>
-      <a href="https://github.com/Sakino486" target="_blank" data-i18n="githubLink"></a>
-      <a href="gallery.html" data-i18n="galleryLink">Gallery</a>
-      <a href="https://example.com/blog" target="_blank" data-i18n="blogLink"></a>
-      
-      <div class="social-share">
-        <button class="share-button" data-platform="twitter" aria-label="Share on Twitter">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-          </svg>
-        </button>
-        <button class="share-button" data-platform="facebook" aria-label="Share on Facebook">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z"/>
-          </svg>
-        </button>
-        <button class="share-button" data-platform="linkedin" aria-label="Share on LinkedIn">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-          </svg>
-        </button>
-      </div>
-    </main>
-
-    <div class="btn-group">
-      <select class="language-select button" id="language-select"></select>
-      <select class="theme-select button" id="theme-select">
-        <option value="none" data-i18n="themeNone">背景表示</option>
-        <option value="light" data-i18n="themeLight">ライトモード</option>
-        <option value="dark" data-i18n="themeDark">ダークモード</option>
-      </select>
+  <header>
+    <h1 data-i18n="title"></h1>
+    <p data-i18n="subtitle"></p>
+    <div id="avatar-container">
+      <img src="Sakino.JPG" alt="Avatar" class="avatar pulse-avatar" loading="eager" id="avatarImage">
     </div>
+    <canvas id="particle-canvas"></canvas>
+  </header>
 
-    <footer>
-      <p data-i18n="copyright"></p>
-    </footer>
+  <main>
+    <h2 data-i18n="introTitle"></h2>
+    <p data-i18n="introContent"></p>
+    <h2 data-i18n="linksTitle"></h2>
+    <a href="https://github.com/Sakino486" target="_blank" data-i18n="githubLink"></a>
+    <a href="https://example.com/blog" target="_blank" data-i18n="blogLink"></a>
+    
+    <div class="social-share">
+      <button class="share-button" data-platform="twitter" aria-label="Share on Twitter">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+        </svg>
+      </button>
+      <button class="share-button" data-platform="facebook" aria-label="Share on Facebook">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z"/>
+        </svg>
+      </button>
+      <button class="share-button" data-platform="linkedin" aria-label="Share on LinkedIn">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+        </svg>
+      </button>
+    </div>
+  </main>
+
+  <div class="btn-group">
+    <select class="language-select button" id="language-select"></select>
+    <select class="theme-select button" id="theme-select">
+      <option value="none" data-i18n="themeNone">背景表示</option>
+      <option value="light" data-i18n="themeLight">ライトモード</option>
+      <option value="dark" data-i18n="themeDark">ダークモード</option>
+    </select>
   </div>
 
-  <!-- 画廊内容 (默认隐藏) -->
-  <div id="galleryContent" style="display:none;">
-    <header>
-      <a href="index.html" style="position:absolute; left:20px; color:white;">← Home</a>
-      <h1>Sakino's Gallery</h1>
-      <p id="status">Loading...</p>
-    </header>
-    
-    <div class="gallery-container" id="gallery"></div>
-    
-    <div class="admin-controls">
-      <button class="admin-btn" id="uploadBtn" title="Upload files">➕</button>
-    </div>
-    
-    <div class="auth-panel" id="authPanel">
-      <h3>Admin Login</h3>
-      <input type="password" id="password" placeholder="Password">
-      <button onclick="verifyPassword()">Login</button>
-    </div>
-    
-    <div class="upload-panel" id="uploadPanel">
-      <input type="file" id="fileInput" multiple accept="image/*,video/*">
-      <button onclick="uploadFiles()">Upload</button>
-      <div id="uploadStatus" style="margin-top:10px;"></div>
-    </div>
-    
-    <div class="lightbox" id="lightbox">
-      <span class="lightbox-close" onclick="closeLightbox()">×</span>
-      <img id="lightbox-img" class="lightbox-content" src="" alt="">
-      <video id="lightbox-video" class="lightbox-content" controls></video>
-    </div>
-  </div>
+  <footer>
+    <p data-i18n="copyright"></p>
+  </footer>
 
   <script>
-    // ===== 应用配置 =====
     const APP_CONFIG = {
-      apiBase: 'http://localhost:3000',
-      apiKey: 'sakino123',
       languages: {
         ja: {
           name: '日本語',
@@ -543,7 +339,6 @@
             introContent: "ここには、私の80％が詰まってるよ。",
             linksTitle: "リンク",
             githubLink: "私の GitHub",
-            galleryLink: "ギャラリー",
             blogLink: "ブログ",
             themeNone: "背景表示",
             themeLight: "ライトモード",
@@ -561,7 +356,6 @@
             introContent: "在这，你可以知晓我的80%",
             linksTitle: "链接至",
             githubLink: "我的 GitHub",
-            galleryLink: "作品画廊",
             blogLink: "博客",
             themeNone: "显示背景",
             themeLight: "浅色模式",
@@ -579,7 +373,6 @@
             introContent: "I'm Sakino,80% of me lives here.",
             linksTitle: "Links to",
             githubLink: "My GitHub",
-            galleryLink: "Gallery",
             blogLink: "Blog",
             themeNone: "Show Background",
             themeLight: "Light Mode",
@@ -591,64 +384,31 @@
       }
     };
 
-    // ===== 应用控制器 =====
     class AppController {
       constructor() {
         this.lang = localStorage.getItem('lang') || 'ja';
         this.theme = localStorage.getItem('theme') || 'none';
-        this.isGallery = window.location.pathname.includes('gallery.html');
-        this.isAuthenticated = localStorage.getItem('gallery_auth') === 'true';
-        this.particles = [];
-        
+        console.log("AppController initialized");
         this.init();
       }
 
       init() {
-        // 初始化页面结构
-        if (this.isGallery) {
-          document.body.classList.remove('portal');
-          document.body.classList.add('gallery');
-          document.getElementById('portalContent').style.display = 'none';
-          document.getElementById('galleryContent').style.display = 'block';
-        } else {
-          document.body.classList.add('portal');
-        }
-
-        // 初始化功能
         this.renderLanguageOptions();
         this.applyTheme();
         this.updateAllContent();
         this.bindEvents();
         this.updateBackground();
-        
-        if (this.isGallery) {
-          this.initGallery();
-          this.checkAuthStatus();
-        } else {
-          this.initParticles();
-          this.registerServiceWorker();
-          this.setupShareButtons();
-        }
-        
+        this.registerServiceWorker();
+        this.setupShareButtons();
         this.trackPageView();
-        
-        // 页面加载动画
-        window.addEventListener('load', () => {
-          setTimeout(() => {
-            document.getElementById('pageLoader').classList.add('fade-out');
-          }, 500);
-        });
       }
 
-      // ===== 通用功能 =====
       renderLanguageOptions() {
         const selector = document.getElementById('language-select');
-        if (selector) {
-          selector.innerHTML = Object.entries(APP_CONFIG.languages)
-            .map(([code, lang]) => `<option value="${code}">${lang.name}</option>`)
-            .join('');
-          selector.value = this.lang;
-        }
+        selector.innerHTML = Object.entries(APP_CONFIG.languages)
+          .map(([code, lang]) => `<option value="${code}">${lang.name}</option>`)
+          .join('');
+        selector.value = this.lang;
       }
 
       applyTheme() {
@@ -660,9 +420,7 @@
           document.body.classList.add('no-theme');
         }
         
-        if (document.getElementById('theme-select')) {
-          document.getElementById('theme-select').value = this.theme;
-        }
+        document.getElementById('theme-select').value = this.theme;
         this.updateBackgroundVisibility();
       }
 
@@ -686,9 +444,7 @@
         const content = APP_CONFIG.languages[this.lang].content;
         document.querySelectorAll('[data-i18n]').forEach(el => {
           const key = el.dataset.i18n;
-          if (content[key]) {
-            el.textContent = content[key];
-          }
+          el.textContent = content[key];
         });
         this.updateBackground();
       }
@@ -708,62 +464,32 @@
       }
 
       bindEvents() {
-        // 语言切换
-        if (document.getElementById('language-select')) {
-          document.getElementById('language-select').addEventListener('change', e => {
-            this.lang = e.target.value;
-            localStorage.setItem('lang', this.lang);
-            this.updateAllContent();
-            this.trackPageView();
-          });
-        }
+        document.getElementById('language-select').addEventListener('change', e => {
+          this.lang = e.target.value;
+          localStorage.setItem('lang', this.lang);
+          this.updateAllContent();
+          this.trackPageView();
+        });
 
-        // 主题切换
-        if (document.getElementById('theme-select')) {
-          document.getElementById('theme-select').addEventListener('change', e => {
-            this.theme = e.target.value;
-            localStorage.setItem('theme', this.theme);
-            this.applyTheme();
-            this.trackPageView();
-          });
-        }
-
-        // 头像点击进入画廊
-        const avatar = document.getElementById('avatarImage');
-        if (avatar) {
-          avatar.addEventListener('click', () => {
-            this.navigateToGallery();
-          });
-          
-          if ('ontouchstart' in window) {
-            avatar.addEventListener('touchend', (e) => {
-              e.preventDefault();
-              this.navigateToGallery();
-            });
-          }
-        }
-      }
-
-      navigateToGallery() {
-        if (this.isGallery) return;
-        
-        try {
-          window.location.href = 'gallery.html?lang=' + this.lang + '&theme=' + this.theme;
-        } catch (e) {
-          console.error("导航失败:", e);
-          window.open('gallery.html', '_blank');
-        }
+        document.getElementById('theme-select').addEventListener('change', e => {
+          this.theme = e.target.value;
+          localStorage.setItem('theme', this.theme);
+          this.applyTheme();
+          this.trackPageView();
+        });
       }
 
       registerServiceWorker() {
-        if ('serviceWorker' in navigator && !this.isGallery) {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('ServiceWorker 注册成功');
-            })
-            .catch(err => {
-              console.log('ServiceWorker 注册失败: ', err);
-            });
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+              .then(registration => {
+                console.log('ServiceWorker registered');
+              })
+              .catch(err => {
+                console.log('ServiceWorker registration failed: ', err);
+              });
+          });
         }
       }
 
@@ -801,304 +527,55 @@
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent
         };
-        console.log('页面访问:', analyticsData);
+        console.log('Page view:', analyticsData);
       }
 
-      // ===== 画廊特有功能 =====
-      initGallery() {
-        this.loadGallery();
-        document.getElementById('uploadBtn').addEventListener('click', () => this.toggleUploadPanel());
-        
-        // 从URL参数获取设置
-        const urlParams = new URLSearchParams(window.location.search);
-        const langParam = urlParams.get('lang');
-        const themeParam = urlParams.get('theme');
-        
-        if (langParam && APP_CONFIG.languages[langParam]) {
-          this.lang = langParam;
-          localStorage.setItem('lang', this.lang);
-        }
-        
-        if (themeParam && ['none', 'light', 'dark'].includes(themeParam)) {
-          this.theme = themeParam;
-          localStorage.setItem('theme', this.theme);
-        }
-        
-        this.applyTheme();
-        this.updateAllContent();
+      openGalleryPage() {
+        console.log("Opening gallery page");
+        this.launchGalleryWindow(false);
       }
 
-      checkAuthStatus() {
-        if (this.isAuthenticated) {
-          document.getElementById('authPanel').style.display = 'none';
-          document.getElementById('uploadBtn').style.display = 'block';
-        } else {
-          document.getElementById('authPanel').style.display = 'block';
-          document.getElementById('uploadBtn').style.display = 'none';
-          document.getElementById('uploadPanel').style.display = 'none';
-        }
-      }
-
-      async loadGallery() {
+      launchGalleryWindow(requireAuth = false) {
+        console.log("Launching gallery window");
+        
+        // 直接在当前窗口打开画廊页面
         try {
-          this.updateStatus('正在连接服务器...');
-          const response = await fetch(`${APP_CONFIG.apiBase}/files`);
-          
-          if (!response.ok) throw new Error('服务器响应异常');
-          
-          const files = await response.json();
-          this.renderGallery(files);
-          this.updateStatus(`已加载 ${files.length} 个文件`);
-          
-        } catch (error) {
-          console.error('加载失败:', error);
-          this.updateStatus('加载失败: ' + error.message);
+          window.location.href = 'gallery.html';
+        } catch (e) {
+          console.error("Failed to navigate:", e);
+          // 回退方案：在新标签页打开
+          window.open('gallery.html', '_blank');
         }
-      }
-
-      renderGallery(files) {
-        const gallery = document.getElementById('gallery');
-        gallery.innerHTML = files.map(file => `
-          <div class="gallery-item" onclick="appController.openLightbox('${file.url}', '${file.type}')">
-            ${file.type === 'image' ? 
-              `<img src="${file.url}" loading="lazy">` : 
-              `<video src="${file.url}"></video>`}
-          </div>
-        `).join('');
-      }
-
-      updateStatus(message) {
-        const statusEl = document.getElementById('status');
-        if (statusEl) statusEl.textContent = message;
-      }
-
-      toggleUploadPanel() {
-        if (!this.isAuthenticated) return;
-        
-        const panel = document.getElementById('uploadPanel');
-        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-      }
-
-      async verifyPassword() {
-        const password = document.getElementById('password').value;
-        const hashed = await this.sha256(password);
-        
-        // 默认密码: sakino123 的SHA256值
-        if (hashed === 'a7ad9618cc9a53cc8fd44f27383f0fb58d5808ae0d8b5888935ffd30e20713b3') {
-          this.isAuthenticated = true;
-          localStorage.setItem('gallery_auth', 'true');
-          this.checkAuthStatus();
-          this.updateStatus('管理员模式已激活');
-        } else {
-          alert('密码错误');
-        }
-      }
-
-      async uploadFiles() {
-        if (!this.isAuthenticated) return;
-        
-        const files = document.getElementById('fileInput').files;
-        if (files.length === 0) {
-          alert('请先选择文件');
-          return;
-        }
-        
-        const status = document.getElementById('uploadStatus');
-        status.textContent = `准备上传 ${files.length} 个文件...`;
-        
-        try {
-          const formData = new FormData();
-          for (let i = 0; i < files.length; i++) {
-            formData.append('files', files[i]);
-          }
-          
-          const response = await fetch(`${APP_CONFIG.apiBase}/upload`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${APP_CONFIG.apiKey}`
-            },
-            body: formData
-          });
-          
-          if (!response.ok) throw new Error('上传失败');
-          
-          const result = await response.json();
-          console.log('上传结果:', result);
-          
-          const successCount = result.filter(r => r.status === 'success').length;
-          status.textContent = `成功上传 ${successCount}/${files.length} 个文件`;
-          
-          if (successCount > 0) {
-            this.loadGallery(); // 刷新画廊
-          }
-          
-        } catch (error) {
-          console.error('上传错误:', error);
-          status.textContent = '上传失败: ' + error.message;
-        }
-      }
-
-      openLightbox(url, type) {
-        const lightbox = document.getElementById('lightbox');
-        const img = document.getElementById('lightbox-img');
-        const video = document.getElementById('lightbox-video');
-        
-        if (type === 'image') {
-          img.src = url;
-          img.style.display = 'block';
-          video.style.display = 'none';
-        } else {
-          video.src = url;
-          video.style.display = 'block';
-          img.style.display = 'none';
-        }
-        
-        lightbox.style.display = 'flex';
-      }
-
-      closeLightbox() {
-        document.getElementById('lightbox').style.display = 'none';
-        document.getElementById('lightbox-img').src = '';
-        document.getElementById('lightbox-video').src = '';
-        document.getElementById('lightbox-video').pause();
-      }
-
-      async sha256(message) {
-        const msgBuffer = new TextEncoder().encode(message);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      }
-
-      // ===== 粒子特效 =====
-      initParticles() {
-        const canvas = document.getElementById("particle-canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        const avatar = document.querySelector(".avatar");
-        
-        let rect = avatar.getBoundingClientRect();
-        let center = {
-          x: rect.left+ rect.width / 2,
-          y: rect.top + rect.height / 2
-        };
-        const avatarRadius = rect.width / 2;
-        const colors = ["#5396A1", "#FDE6DC", "#FEB396"];
-
-        class Particle {
-          constructor() {
-            this.reset();
-            this.lifetime = 0;
-            this.maxLifetime = 10 * 60;
-            this.blinkProgress = 0;
-            this.blinkPeriod = 60;
-          }
-
-          reset() {
-            this.x = center.x;
-            this.y = center.y;
-            const angle = Math.random() * 2 * Math.PI;
-            const speed = Math.random() * 3 + 3;
-            this.vx = Math.cos(angle) * speed;
-            this.vy = Math.sin(angle) * speed;
-            this.size = 12;
-            this.alpha = 1;
-            this.color = colors[Math.floor(Math.random() * colors.length)];
-            this.returning = false;
-            this.lifetime = 0;
-            this.blinkProgress = 0;
-          }
-
-          update() {
-            const dx = center.x - this.x;
-            const dy = center.y - this.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            if (this.attraction) {
-              const accel = 0.1;
-              this.vx += accel * (dx / dist);
-              this.vy += accel * (dy / dist);
-            }
-
-            this.x += this.vx;
-            this.y += this.vy;
-            this.lifetime++;
-
-            if (this.attraction && dist < 10 && !this.returning) {
-              this.returning = true;
-              this.vx = 0;
-              this.vy = 0;
-            }
-
-            this.blinkProgress = (this.blinkProgress + 1) % this.blinkPeriod;
-            const blinkAlpha = 0.425 * Math.sin((this.blinkProgress / this.blinkPeriod) * 2 * Math.PI) + 0.575;
-
-            if (this.lifetime >= this.maxLifetime) {
-              this.alpha = 0;
-            } else {
-              this.alpha = blinkAlpha * (1 - (this.lifetime / this.maxLifetime));
-            }
-
-            if (this.alpha <= 0 || this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
-              if (!this.attraction && this.emitParticles) {
-                this.reset();
-              } else {
-                this.alpha = 0;
-              }
-            }
-          }
-
-          draw(ctx) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.shadowColor = this.color;
-            ctx.shadowBlur = 10 * this.alpha;
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fillStyle = this.color;
-            ctx.globalAlpha = this.alpha;
-            ctx.fill();
-            ctx.globalAlpha = 1;
-            ctx.restore();
-          }
-        }
-
-        this.particles = Array.from({ length: 100 }, () => new Particle());
-        this.animateParticles();
-      }
-
-      animateParticles() {
-        const canvas = document.getElementById("particle-canvas");
-        const ctx = canvas.getContext("2d");
-        const avatar = document.querySelector(".avatar");
-        
-        const rect = avatar.getBoundingClientRect();
-        const center = {
-          x: rect.left + rect.width / 2 + window.scrollX,
-          y: rect.top + rect.height / 2 + window.scrollY
-        };
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        this.particles.forEach(p => {
-          p.update();
-          p.draw(ctx);
-        });
-        requestAnimationFrame(() => this.animateParticles());
       }
     }
 
-    // 初始化应用
+    // 初始化（确保DOM加载完成）
     document.addEventListener('DOMContentLoaded', () => {
-      // 强制注销所有Service Worker并清除缓存
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations()
-          .then(regs => Promise.all(regs.map(reg => reg.unregister())))
-          .then(() => caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))))
-          .then(() => console.log('Service Worker已注销，缓存已清除'))
-          .catch(err => console.error('清理失败:', err));
+      const app = new AppController();
+      window.appController = app;
+      
+      // 确保头像点击事件绑定
+      const avatar = document.getElementById('avatarImage');
+      if (avatar) {
+        avatar.addEventListener('click', () => {
+          app.openGalleryPage();
+        });
+        
+        // 移动端触摸支持
+        if ('ontouchstart' in window) {
+          avatar.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            app.openGalleryPage();
+          });
+        }
       }
 
-      window.appController = new AppController();
+      // 页面加载动画
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          document.getElementById('pageLoader').classList.add('fade-out');
+        }, 500);
+      });
     });
 
     // 图片错误处理
@@ -1109,19 +586,168 @@
       }
     }, true);
 
-    // 全局函数供HTML调用
-    function verifyPassword() {
-      window.appController.verifyPassword();
+    // 粒子特效
+    const canvas = document.getElementById("particle-canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const avatar = document.querySelector(".avatar");
+    
+    let rect = avatar.getBoundingClientRect();
+    let center = {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2
+    };
+    const avatarRadius = rect.width / 2;
+
+    let attraction = false;
+    let emitParticles = true;
+    const colors = ["#5396A1", "#FDE6DC", "#FEB396"];
+
+    class Particle {
+      constructor() {
+        this.reset();
+        this.lifetime = 0;
+        this.maxLifetime = 10 * 60;
+        this.blinkProgress = 0;
+        this.blinkPeriod = 60;
+      }
+
+      reset() {
+        this.x = center.x;
+        this.y = center.y;
+        const angle = Math.random() * 2 * Math.PI;
+        const speed = Math.random() * 3 + 3;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.size = 12;
+        this.alpha = 1;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.returning = false;
+        this.lifetime = 0;
+        this.blinkProgress = 0;
+      }
+
+      update() {
+        const dx = center.x - this.x;
+        const dy = center.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (attraction) {
+          const accel = 0.1;
+          this.vx += accel * (dx / dist);
+          this.vy += accel * (dy / dist);
+        }
+
+        this.x += this.vx;
+        this.y += this.vy;
+        this.lifetime++;
+
+        if (attraction && dist < 10 && !this.returning) {
+          this.returning = true;
+          this.vx = 0;
+          this.vy = 0;
+        }
+
+        this.blinkProgress = (this.blinkProgress + 1) % this.blinkPeriod;
+        const blinkAlpha = 0.425 * Math.sin((this.blinkProgress / this.blinkPeriod) * 2 * Math.PI) + 0.575;
+
+        if (this.lifetime >= this.maxLifetime) {
+          this.alpha = 0;
+        } else {
+          this.alpha = blinkAlpha * (1 - (this.lifetime / this.maxLifetime));
+        }
+
+        if (this.alpha <= 0 || this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+          if (!attraction && emitParticles) {
+            this.reset();
+          } else {
+            this.alpha = 0;
+          }
+        }
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 10 * this.alpha;
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.alpha;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
     }
 
-    function uploadFiles() {
-      window.appController.uploadFiles();
+    const particles = Array.from({ length: 100 }, () => new Particle());
+
+    function animate() {
+      rect = avatar.getBoundingClientRect();
+      center = {
+        x: rect.left + rect.width / 2 + window.scrollX,
+        y: rect.top + rect.height / 2 + window.scrollY
+      };
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw(ctx);
+      });
+      requestAnimationFrame(animate);
     }
 
-    function closeLightbox() {
-      window.appController.closeLightbox();
-    }
+    animate();
+
+    document.addEventListener("mousemove", (e) => {
+      const rect = avatar.getBoundingClientRect();
+      const center = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+      const avatarRadius = rect.width / 2;
+
+      const dx = e.clientX - center.x;
+      const dy = e.clientY - center.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const isInside = distance <= avatarRadius;
+
+      if (isInside && !attraction) {
+        attraction = true;
+        emitParticles = false;
+
+        particles.forEach(p => {
+          if (p.alpha > 0) {
+            const dx = center.x - p.x;
+            const dy = center.y - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const speed = Math.random() * 2 + 2;
+            p.vx = (dx / dist) * speed;
+            p.vy = (dy / dist) * speed;
+            p.returning = false;
+          }
+        });
+      } else if (!isInside && attraction) {
+        attraction = false;
+        emitParticles = true;
+
+        particles.forEach(p => {
+          if (p.alpha > 0) {
+            p.reset();
+          }
+        });
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      rect = avatar.getBoundingClientRect();
+      center = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+    });
   </script>
 </body>
 </html>
-
