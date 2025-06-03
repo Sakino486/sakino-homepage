@@ -26,7 +26,6 @@
       padding: 1.5rem;
       text-align: center;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      position: relative;
     }
     
     .gallery-container {
@@ -38,20 +37,20 @@
       margin: 0 auto;
     }
     
-    .gallery-item {
-      position: relative;
-      overflow: hidden;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transition: transform 0.3s;
-      aspect-ratio: 1;
-    }
-    
     /* 说说样式 */
     .shuoshuo-item {
       aspect-ratio: auto;
       background-size: cover;
       background-position: center;
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+    }
+    
+    .shuoshuo-item:hover {
+      transform: translateY(-5px);
     }
     
     .shuoshuo-content {
@@ -107,31 +106,26 @@
       cursor: pointer;
     }
     
-    .gallery-item:hover {
-      transform: translateY(-5px);
-    }
-    
-    .gallery-item img,
-    .gallery-item video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      cursor: pointer;
-    }
-    
     /* 发布按钮 */
     .post-btn {
-      position: absolute;
-      top: 20px;
+      position: fixed;
+      bottom: 20px;
       right: 20px;
-      background-color: white;
-      color: var(--primary-color);
+      background-color: var(--primary-color);
+      color: white;
       border: none;
-      border-radius: 20px;
-      padding: 8px 15px;
-      font-weight: bold;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 1.2rem;
       cursor: pointer;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.3s;
+      z-index: 100;
+    }
+    
+    .post-btn:hover {
+      transform: rotate(90deg);
     }
     
     /* 发布面板 */
@@ -181,25 +175,6 @@
       font-family: inherit;
     }
     
-    .admin-controls {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 100;
-    }
-    
-    .admin-btn {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      font-size: 1.2rem;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    
     .auth-panel {
       position: fixed;
       top: 50%;
@@ -218,19 +193,6 @@
       margin: 1rem auto;
       padding: 0.5rem;
       width: 200px;
-    }
-    
-    .upload-panel {
-      display: none;
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      right: 20px;
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-      z-index: 100;
     }
     
     .lightbox {
@@ -264,21 +226,14 @@
       .gallery-container {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
-      
-      .post-btn {
-        top: 15px;
-        right: 15px;
-        padding: 6px 12px;
-        font-size: 0.9rem;
-      }
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
   <header>
     <h1>Sakino's Gallery</h1>
     <p id="status">正在加载...</p>
-    <button class="post-btn" id="postBtn">发布说说</button>
   </header>
   
   <div class="gallery-container" id="gallery"></div>
@@ -310,9 +265,9 @@
     </div>
   </div>
   
-  <div class="admin-controls">
-    <button class="admin-btn" id="uploadBtn" title="上传文件">➕</button>
-  </div>
+  <button class="post-btn" id="postBtn" title="发布说说">
+    <i class="fas fa-pen"></i>
+  </button>
   
   <div class="auth-panel" id="authPanel">
     <h3>管理员登录</h3>
@@ -320,26 +275,12 @@
     <button onclick="verifyPassword()">登录</button>
   </div>
   
-  <div class="upload-panel" id="uploadPanel">
-    <input type="file" id="fileInput" multiple accept="image/*,video/*">
-    <button onclick="uploadFiles()">上传</button>
-    <div id="uploadStatus" style="margin-top:10px;"></div>
-  </div>
-  
   <div class="lightbox" id="lightbox">
     <span class="lightbox-close" onclick="closeLightbox()">×</span>
     <img id="lightbox-img" class="lightbox-content" src="" alt="">
-    <video id="lightbox-video" class="lightbox-content" controls></video>
   </div>
 
   <script>
-    // ===== 配置 =====
-    const API_BASE = 'http://localhost:3000'; // 替换为你的本地服务器地址
-    const API_KEY = 'sakino123'; // 与server.js中的API_KEY一致
-    
-    // ===== 状态管理 =====
-    let isAuthenticated = localStorage.getItem('gallery_auth') === 'true';
-    
     // 用户信息
     const userInfo = {
       avatar: 'https://via.placeholder.com/50', // 默认头像，可以替换为你的头像
@@ -349,10 +290,9 @@
     // ===== 初始化 =====
     document.addEventListener('DOMContentLoaded', () => {
       checkAuthStatus();
-      loadContent();
+      loadShuoshuos();
       
       // 绑定事件
-      document.getElementById('uploadBtn').addEventListener('click', toggleUploadPanel);
       document.getElementById('postBtn').addEventListener('click', togglePostPanel);
       document.getElementById('cancelBtn').addEventListener('click', togglePostPanel);
       document.getElementById('submitBtn').addEventListener('click', publishShuoshuo);
@@ -364,69 +304,44 @@
     });
     
     // ===== 内容加载 =====
-    async function loadContent() {
-      try {
-        updateStatus('正在加载内容...');
-        
-        // 加载画廊内容
-        const galleryResponse = await fetch(`${API_BASE}/files`);
-        if (!galleryResponse.ok) throw new Error('画廊加载失败');
-        const galleryFiles = await galleryResponse.json();
-        
-        // 加载说说内容
-        const shuoshuoData = JSON.parse(localStorage.getItem('shuoshuo')) || [];
-        
-        // 合并内容并按时间排序
-        const allContent = [
-          ...galleryFiles.map(file => ({...file, type: 'gallery', time: new Date(file.time || Date.now()).getTime()})),
-          ...shuoshuoData.map(shuoshuo => ({...shuoshuo, type: 'shuoshuo', time: new Date(shuoshuo.time).getTime()}))
-        ].sort((a, b) => b.time - a.time);
-        
-        renderContent(allContent);
-        updateStatus(`已加载 ${allContent.length} 个项目`);
-        
-      } catch (error) {
-        console.error('加载失败:', error);
-        updateStatus('加载失败: ' + error.message);
+    function loadShuoshuos() {
+      updateStatus('正在加载说说...');
+      
+      // 加载说说内容
+      const shuoshuoData = JSON.parse(localStorage.getItem('shuoshuo')) || [];
+      
+      if (shuoshuoData.length === 0) {
+        updateStatus('还没有说说，发布第一条吧！');
+      } else {
+        updateStatus(`已加载 ${shuoshuoData.length} 条说说`);
       }
+      
+      renderShuoshuos(shuoshuoData);
     }
     
-    function renderContent(items) {
+    function renderShuoshuos(shuoshuos) {
       const gallery = document.getElementById('gallery');
-      gallery.innerHTML = items.map(item => {
-        if (item.type === 'gallery') {
-          return `
-            <div class="gallery-item" onclick="openLightbox('${item.url}', '${item.type}')">
-              ${item.type === 'image' ? 
-                `<img src="${item.url}" loading="lazy">` : 
-                `<video src="${item.url}"></video>`}
-            </div>
-          `;
-        } else {
-          // 说说内容
-          return `
-            <div class="gallery-item shuoshuo-item" style="background: ${item.background || 'white'}">
-              <div class="shuoshuo-content">
-                <div class="shuoshuo-header">
-                  <img src="${item.avatar}" class="avatar" alt="${item.nickname}">
-                  <div class="user-info">
-                    <div class="nickname">${item.nickname}</div>
-                    <div class="post-time">${item.time}</div>
-                  </div>
-                </div>
-                <div class="shuoshuo-text">${item.content}</div>
-                ${item.images && item.images.length > 0 ? `
-                  <div class="shuoshuo-images">
-                    ${item.images.map(img => `
-                      <img src="${img}" class="shuoshuo-image" onclick="openLightbox('${img}', 'image')">
-                    `).join('')}
-                  </div>
-                ` : ''}
+      gallery.innerHTML = shuoshuos.map(shuoshuo => `
+        <div class="shuoshuo-item" style="background: ${shuoshuo.background || 'white'}">
+          <div class="shuoshuo-content">
+            <div class="shuoshuo-header">
+              <img src="${shuoshuo.avatar}" class="avatar" alt="${shuoshuo.nickname}">
+              <div class="user-info">
+                <div class="nickname">${shuoshuo.nickname}</div>
+                <div class="post-time">${shuoshuo.time}</div>
               </div>
             </div>
-          `;
-        }
-      }).join('');
+            <div class="shuoshuo-text">${shuoshuo.content}</div>
+            ${shuoshuo.images && shuoshuo.images.length > 0 ? `
+              <div class="shuoshuo-images">
+                ${shuoshuo.images.map(img => `
+                  <img src="${img}" class="shuoshuo-image" onclick="openLightbox('${img}', 'image')">
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
     }
     
     // ===== 说说功能 =====
@@ -488,7 +403,6 @@
       
       const newShuoshuo = {
         id: Date.now(),
-        type: 'shuoshuo',
         avatar: userInfo.avatar,
         nickname: userInfo.nickname,
         time: new Date().toLocaleString(),
@@ -527,8 +441,8 @@
       // 保存回本地存储
       localStorage.setItem('shuoshuo', JSON.stringify(shuoshuos));
       
-      // 重新加载内容
-      loadContent();
+      // 重新加载说说
+      loadShuoshuos();
       
       // 关闭发布面板
       togglePostPanel();
@@ -536,15 +450,14 @@
     
     // ===== 认证管理 =====
     function checkAuthStatus() {
-      if (isAuthenticated) {
+      if (localStorage.getItem('gallery_auth') === 'true') {
+        isAuthenticated = true;
         document.getElementById('authPanel').style.display = 'none';
-        document.getElementById('uploadBtn').style.display = 'block';
         document.getElementById('postBtn').style.display = 'block';
       } else {
         document.getElementById('authPanel').style.display = 'block';
-        document.getElementById('uploadBtn').style.display = 'none';
         document.getElementById('postBtn').style.display = 'none';
-        document.getElementById('uploadPanel').style.display = 'none';
+        document.getElementById('postPanel').style.display = 'none';
       }
     }
     
@@ -562,80 +475,18 @@
       }
     }
     
-    // ===== 上传功能 =====
-    function toggleUploadPanel() {
-      const panel = document.getElementById('uploadPanel');
-      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-    }
-    
-    async function uploadFiles() {
-      if (!isAuthenticated) return;
-      
-      const files = document.getElementById('fileInput').files;
-      if (files.length === 0) {
-        alert('请先选择文件');
-        return;
-      }
-      
-      const status = document.getElementById('uploadStatus');
-      status.textContent = `准备上传 ${files.length} 个文件...`;
-      
-      try {
-        const formData = new FormData();
-        for (let i = 0; i < files.length; i++) {
-          formData.append('files', files[i]);
-        }
-        
-        const response = await fetch(`${API_BASE}/upload`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${API_KEY}`
-          },
-          body: formData
-        });
-        
-        if (!response.ok) throw new Error('上传失败');
-        
-        const result = await response.json();
-        console.log('上传结果:', result);
-        
-        const successCount = result.filter(r => r.status === 'success').length;
-        status.textContent = `成功上传 ${successCount}/${files.length} 个文件`;
-        
-        if (successCount > 0) {
-          loadContent();
-        }
-        
-      } catch (error) {
-        console.error('上传错误:', error);
-        status.textContent = '上传失败: ' + error.message;
-      }
-    }
-    
     // ===== 灯箱功能 =====
-    function openLightbox(url, type) {
+    function openLightbox(imgSrc, type) {
       const lightbox = document.getElementById('lightbox');
       const img = document.getElementById('lightbox-img');
-      const video = document.getElementById('lightbox-video');
       
-      if (type === 'image') {
-        img.src = url;
-        img.style.display = 'block';
-        video.style.display = 'none';
-      } else {
-        video.src = url;
-        video.style.display = 'block';
-        img.style.display = 'none';
-      }
-      
+      img.src = imgSrc;
       lightbox.style.display = 'flex';
     }
     
     function closeLightbox() {
       document.getElementById('lightbox').style.display = 'none';
       document.getElementById('lightbox-img').src = '';
-      document.getElementById('lightbox-video').src = '';
-      document.getElementById('lightbox-video').pause();
     }
     
     // ===== 工具函数 =====
