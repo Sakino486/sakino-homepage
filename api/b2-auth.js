@@ -1,20 +1,26 @@
 export default async (req, res) => {
-  const { 0056a27240916c80000000001, K005LYE7Ol246Em2MDa0bxhV9sqtixY } = process.env;
+  const { bucketId, prefix } = req.query;
   
-  if (!B2_KEY_ID || !B2_APP_KEY) {
-    return res.status(500).json({ error: "Backblaze 凭证未配置" });
-  }
-
   try {
-    const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-      headers: { 'Authorization': `Basic ${Buffer.from(`${0056a27240916c80000000001}:${K005LYE7Ol246Em2MDa0bxhV9sqtixY}`).toString('base64')}` }
+    // 先获取授权
+    const authRes = await fetch(`${req.headers.origin}/api/b2-auth`);
+    const { apiUrl, authToken } = await authRes.json();
+    
+    // 获取文件列表
+    const listRes = await fetch(`${apiUrl}/b2api/v2/b2_list_file_names`, {
+      method: 'POST',
+      headers: { 
+        'Authorization': authToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        bucketId,
+        prefix,
+        maxFileCount: 1000
+      })
     });
     
-    const authData = await authRes.json();
-    res.status(200).json({
-      apiUrl: authData.apiUrl,
-      authToken: authData.authorizationToken
-    });
+    res.status(200).json(await listRes.json());
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
