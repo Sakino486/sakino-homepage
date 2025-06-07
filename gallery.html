@@ -37,7 +37,6 @@
       margin: 0 auto;
     }
     
-    /* 内容项样式 */
     .content-item {
       position: relative;
       overflow: hidden;
@@ -47,7 +46,6 @@
       aspect-ratio: 1;
     }
     
-    /* 说说样式 */
     .shuoshuo-item {
       aspect-ratio: auto;
       background-size: cover;
@@ -119,7 +117,6 @@
       cursor: pointer;
     }
     
-    /* 发布按钮 */
     .post-btn {
       position: fixed;
       bottom: 20px;
@@ -132,7 +129,7 @@
       height: 50px;
       font-size: 1.2rem;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba�(0,0,0,0.2);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       transition: transform 0.3s;
       z-index: 100;
     }
@@ -141,7 +138,6 @@
       transform: rotate(90deg);
     }
     
-    /* 发布面板 */
     .post-panel {
       display: none;
       position: fixed;
@@ -244,7 +240,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
-  <!-- 保持所有HTML结构完全不变 -->
   <header>
     <h1>Sakino's Space</h1>
     <p id="status">正在加载...</p>
@@ -297,62 +292,171 @@
 
   <script>
     // ===== 配置 =====
-    const API_BASE = 'http://localhost:3000'; // 保持原有API地址不变
-    const API_KEY = 'sakino123'; // 保持原有API密钥不变
-    
-    // 新增B2配置（唯一需要添加的配置）
     const B2_CONFIG = {
-      endpoint: 'https://s3.us-east-005.backblazeb2.com', // 替换为您的B2 Endpoint
-      bucket: '56fa12372214408991760c18', // 替换为您的B2存储桶名称
-      authUrl: '/api/b2-auth' // 后端签发凭证的接口
+      keyId: "6a27240916c8",       // B2应用密钥ID
+      applicationKey: "00523639498d53c72d1ecaa02e45f6f42efb358592", // B2应用密钥
+      bucketName: "sakino-personal",      // B2存储桶名称
+      bucketId: "56fa12372214408991760c18"         // B2存储桶ID
     };
-    
-    // 用户信息（保持原样）
+
     const userInfo = {
       avatar: 'https://via.placeholder.com/50',
       nickname: 'Sakino'
     };
-    
+
     // ===== 初始化 =====
     document.addEventListener('DOMContentLoaded', () => {
       checkAuthStatus();
-      loadContent();
+      loadContentFromB2();
       
-      // 绑定事件（保持原样）
       document.getElementById('postBtn').addEventListener('click', togglePostPanel);
       document.getElementById('cancelBtn').addEventListener('click', togglePostPanel);
       document.getElementById('submitBtn').addEventListener('click', publishContent);
       
-      // 编辑器工具（保持原样）
       document.getElementById('fontSelector').addEventListener('change', changeFont);
       document.getElementById('colorSelector').addEventListener('input', changeColor);
       document.getElementById('bgBtn').addEventListener('click', setBackground);
     });
-    
-    // ===== 内容加载 =====
-    async function loadContent() {
+
+    // ===== 从B2加载内容 =====
+    async function loadContentFromB2() {
       try {
-        updateStatus('正在加载内容...');
+        updateStatus('正在从B2加载内容...');
         
-        // 保持原有加载逻辑不变
-        const response = await fetch(`${API_BASE}/posts`);
-        if (!response.ok) throw new Error('内容加载失败');
+        // 1. 获取B2授权
+        const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
+          headers: {
+            'Authorization': `Basic ${btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)}`
+          }
+        });
+        const { apiUrl, authorizationToken } = await authRes.json();
         
-        const posts = await response.json();
+        // 2. 获取存储桶中的所有文件
+        const listRes = await fetch(`${apiUrl}/b2api/v2/b2_list_file_names`, {
+          method: 'POST',
+          headers: { 'Authorization': authorizationToken },
+          body: JSON.stringify({ 
+            bucketId: B2_CONFIG.bucketId,
+            prefix: 'metadata/'  // 只加载元数据文件
+          })
+        });
         
-        if (posts.length === 0) {
-          updateStatus('还没有内容，发布第一条吧！');
-        } else {
-          updateStatus(`已加载 ${posts.length} 条内容`);
+        const { files } = await listRes.json();
+        
+        if (!files || files.length === 0) {
+          updateStatus('B2存储桶中没有内容');
+          return;
         }
         
+        // 3. 加载所有元数据文件内容
+        const posts = [];
+        for (const file of files) {
+          const fileUrl = `https://f003.backblazeb2.com/file/${B2_CONFIG.bucketName}/${file.fileName}`;
+          const res = await fetch(fileUrl);
+          posts.push(await res.json());
+        }
+        
+        // 4. 按时间排序并渲染
+        posts.sort((a, b) => new Date(b.time) - new Date(a.time));
         renderContent(posts);
+        updateStatus(`已加载 ${posts.length} 条内容`);
       } catch (error) {
         console.error('加载失败:', error);
         updateStatus('加载失败: ' + error.message);
       }
     }
-    
+
+    // ===== 发布内容到B2 =====
+    async function publishContent() {
+      const editor = document.getElementById('shuoshuoEditor');
+      const content = editor.innerHTML;
+      const mediaInput = document.getElementById('mediaUpload');
+      
+      if (!content.trim() && mediaInput.files.length === 0) {
+        alert('内容或媒体文件不能为空');
+        return;
+      }
+      
+      try {
+        updateStatus('正在发布内容到B2...');
+        
+        // 1. 获取B2授权
+        const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
+          headers: {
+            'Authorization': `Basic ${btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)}`
+          }
+        });
+        const { apiUrl, authorizationToken } = await authRes.json();
+        
+        // 2. 获取上传URL
+        const uploadUrlRes = await fetch(`${apiUrl}/b2api/v2/b2_get_upload_url`, {
+          method: 'POST',
+          headers: { 'Authorization': authorizationToken },
+          body: JSON.stringify({ bucketId: B2_CONFIG.bucketId })
+        });
+        const { uploadUrl, authorizationToken: uploadAuthToken } = await uploadUrlRes.json();
+
+        // 3. 上传媒体文件
+        const mediaUrls = [];
+        for (const file of mediaInput.files) {
+          const fileName = `media/${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+          
+          const uploadRes = await fetch(uploadUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': uploadAuthToken,
+              'X-Bz-File-Name': fileName,
+              'Content-Type': file.type,
+              'X-Bz-Content-Sha1': 'do_not_verify'
+            },
+            body: file
+          });
+          
+          const { downloadUrl } = await uploadRes.json();
+          mediaUrls.push({
+            type: file.type.startsWith('image') ? 'image' : 'video',
+            url: downloadUrl,
+            mimetype: file.type
+          });
+        }
+
+        // 4. 创建元数据文件
+        const metadata = {
+          type: 'shuoshuo',
+          content: content,
+          background: editor.style.background || '',
+          nickname: userInfo.nickname,
+          avatar: userInfo.avatar,
+          time: new Date().toISOString(),
+          media: mediaUrls
+        };
+        
+        // 5. 上传元数据文件
+        const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+        const metadataFileName = `metadata/${Date.now()}.json`;
+        
+        await fetch(uploadUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': uploadAuthToken,
+            'X-Bz-File-Name': metadataFileName,
+            'Content-Type': 'application/json',
+            'X-Bz-Content-Sha1': 'do_not_verify'
+          },
+          body: metadataBlob
+        });
+
+        // 6. 重新加载内容
+        await loadContentFromB2();
+        togglePostPanel();
+        updateStatus('内容发布成功！');
+      } catch (error) {
+        console.error('发布错误:', error);
+        updateStatus('发布失败: ' + error.message);
+      }
+    }
+
+    // ===== 渲染内容 =====
     function renderContent(posts) {
       const container = document.getElementById('contentContainer');
       container.innerHTML = posts.map(post => {
@@ -364,7 +468,7 @@
                   <img src="${post.avatar}" class="avatar" alt="${post.nickname}">
                   <div class="user-info">
                     <div class="nickname">${post.nickname}</div>
-                    <div class="post-time">${post.time}</div>
+                    <div class="post-time">${new Date(post.time).toLocaleString()}</div>
                   </div>
                 </div>
                 <div class="shuoshuo-text">${post.content}</div>
@@ -396,87 +500,8 @@
         }
       }).join('');
     }
-    
-    // ===== 发布功能 =====
-    async function publishContent() {
-      const editor = document.getElementById('shuoshuoEditor');
-      const content = editor.innerHTML;
-      const mediaInput = document.getElementById('mediaUpload');
-      
-      if (!content.trim() && mediaInput.files.length === 0) {
-        alert('内容或媒体文件不能为空');
-        return;
-      }
-      
-      try {
-        updateStatus('正在发布内容...');
-        
-        // 1. 获取B2上传凭证
-        const { uploadUrl, authorizationToken } = await fetch(B2_CONFIG.authUrl).then(r => r.json());
-        
-        // 2. 上传媒体文件到B2
-        const mediaUrls = [];
-        for (const file of mediaInput.files) {
-          const fileKey = `media/${Date.now()}-${file.name.replace(/\s+/g, '_')}`; // 替换空格为下划线
-          
-          const uploadRes = await fetch(uploadUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': authorizationToken,
-              'X-Bz-File-Name': encodeURIComponent(fileKey),
-              'Content-Type': file.type,
-              'X-Bz-Content-Sha1': await calculateSha1(file)
-            },
-            body: file
-          });
-          
-          if (!uploadRes.ok) throw new Error('B2上传失败');
-          
-          mediaUrls.push({
-            type: file.type.startsWith('image') ? 'image' : 'video',
-            url: `${B2_CONFIG.endpoint}/${B2_CONFIG.bucket}/${fileKey}`,
-            mimetype: file.type
-          });
-        }
-        
-        // 3. 保存元数据到数据库（原有逻辑不变）
-        const saveRes = await fetch(`${API_BASE}/posts`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${API_KEY}`
-          },
-          body: JSON.stringify({
-            type: 'shuoshuo',
-            content: content,
-            background: editor.style.background || '',
-            nickname: userInfo.nickname,
-            avatar: userInfo.avatar,
-            time: new Date().toLocaleString(),
-            media: mediaUrls
-          })
-        });
-        
-        if (!saveRes.ok) throw new Error('保存数据失败');
-        
-        // 4. 刷新内容（原有逻辑不变）
-        loadContent();
-        togglePostPanel();
-        updateStatus('内容发布成功');
-      } catch (error) {
-        console.error('发布错误:', error);
-        updateStatus('发布失败: ' + error.message);
-      }
-    }
-    
-    // 新增：计算文件SHA1（B2要求）
-    async function calculateSha1(file) {
-      const buffer = await file.arrayBuffer();
-      const hash = await crypto.subtle.digest('SHA-1', buffer);
-      return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-    
-    // ===== 以下所有函数保持原样不变 =====
+
+    // ===== 辅助函数 =====
     function togglePostPanel() {
       const panel = document.getElementById('postPanel');
       panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
@@ -484,7 +509,6 @@
       if (panel.style.display === 'block') {
         document.getElementById('shuoshuoEditor').focus();
       } else {
-        // 重置编辑器
         document.getElementById('shuoshuoEditor').innerHTML = '';
         document.getElementById('shuoshuoEditor').style.background = '';
         document.getElementById('mediaUpload').value = '';
@@ -583,3 +607,4 @@
   </script>
 </body>
 </html>
+
