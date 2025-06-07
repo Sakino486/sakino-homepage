@@ -2,361 +2,109 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sakino's Space</title>
+  <title>画廊</title>
   <style>
-    :root {
-      --primary-color: #74ebd5;
-      --dark-bg: #232526;
-      --light-text: #fff;
-      --dark-text: #333;
-    }
-    
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f5f5f5;
-      color: var(--dark-text);
-    }
-    
-    header {
-      background: linear-gradient(270deg, #74ebd5, #9face6);
-      color: white;
-      padding: 1.5rem;
-      text-align: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    
-    .content-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    .content-item {
-      position: relative;
-      overflow: hidden;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transition: transform 0.3s;
-      aspect-ratio: 1;
-    }
-    
-    .shuoshuo-item {
-      aspect-ratio: auto;
-      background-size: cover;
-      background-position: center;
-    }
-    
-    .shuoshuo-content {
-      padding: 15px;
-      color: #333;
-    }
-    
-    .shuoshuo-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    
-    .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-right: 10px;
-    }
-    
-    .user-info {
-      flex: 1;
-    }
-    
-    .nickname {
-      font-weight: bold;
-      margin-bottom: 2px;
-    }
-    
-    .post-time {
-      color: #888;
-      font-size: 0.8rem;
-    }
-    
-    .shuoshuo-text {
-      margin: 10px 0;
-      line-height: 1.6;
-    }
-    
-    .media-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 8px;
-      margin-top: 10px;
-    }
-    
-    .media-thumbnail {
-      width: 100%;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    
-    .content-item:hover {
-      transform: translateY(-5px);
-    }
-    
-    .content-item img,
-    .content-item video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      cursor: pointer;
-    }
-    
-    .post-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      font-size: 1.2rem;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      transition: transform 0.3s;
-      z-index: 100;
-    }
-    
-    .post-btn:hover {
-      transform: rotate(90deg);
-    }
-    
-    .post-panel {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      z-index: 1000;
-      width: 80%;
-      max-width: 500px;
-    }
-    
-    .post-toolbar {
-      display: flex;
-      margin-bottom: 10px;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    
-    .tool-btn {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      background-color: #f0f0f0;
-    }
-    
-    .font-selector, .color-selector {
-      padding: 6px;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-    }
-    
-    #shuoshuoEditor {
-      width: 100%;
-      min-height: 100px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      font-family: inherit;
-    }
-    
-    .auth-panel {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      z-index: 1000;
-      text-align: center;
-    }
-    
-    .auth-panel input {
-      display: block;
-      margin: 1rem auto;
-      padding: 0.5rem;
-      width: 200px;
-    }
-    
-    .lightbox {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.9);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    
-    .lightbox-content {
-      max-width: 80%;
-      max-height: 80%;
-    }
-    
-    .lightbox-close {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      color: white;
-      font-size: 2rem;
-      cursor: pointer;
-    }
-    
-    @media (max-width: 768px) {
-      .content-container {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      }
-    }
+    /* 添加必要的样式 */
+    .content-item { margin-bottom: 20px; }
+    .shuoshuo-item { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    .shuoshuo-header { display: flex; align-items: center; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; }
+    .user-info { display: flex; flex-direction: column; }
+    .nickname { font-weight: bold; }
+    .post-time { font-size: 12px; color: #888; }
+    .shuoshuo-text { margin-top: 10px; }
+    .media-container { margin-top: 10px; }
+    .media-thumbnail { max-width: 100px; max-height: 100px; margin-right: 10px; cursor: pointer; }
+    #lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; }
+    #lightbox img, #lightbox video { max-width: 90%; max-height: 90%; }
   </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
-  <header>
-    <h1>Sakino's Space</h1>
-    <p id="status">正在加载...</p>
-  </header>
-  
-  <div class="content-container" id="contentContainer"></div>
-  
-  <div class="post-panel" id="postPanel">
-    <h3>发布新内容</h3>
-    <div class="post-toolbar">
-      <select class="font-selector" id="fontSelector">
-        <option value="Arial">Arial</option>
-        <option value="Times New Roman">Times New Roman</option>
-        <option value="Courier New">Courier New</option>
-        <option value="Georgia">Georgia</option>
-        <option value="Verdana">Verdana</option>
-        <option value="宋体">宋体</option>
-        <option value="微软雅黑">微软雅黑</option>
-      </select>
-      
-      <input type="color" class="color-selector" id="colorSelector" value="#000000">
-      
-      <button class="tool-btn" id="bgBtn">背景</button>
-    </div>
-    
-    <div id="shuoshuoEditor" contenteditable="true" placeholder="写下你想说的话..."></div>
-    
-    <div>
-      <input type="file" id="mediaUpload" accept="image/*,video/*" multiple>
-      <button class="tool-btn" id="cancelBtn">取消</button>
-      <button class="tool-btn" style="background-color: var(--primary-color); color: white;" id="submitBtn">发布</button>
-    </div>
-  </div>
-  
-  <button class="post-btn" id="postBtn" title="发布内容">
-    <i class="fas fa-pen"></i>
-  </button>
-  
-  <div class="auth-panel" id="authPanel">
-    <h3>管理员登录</h3>
+  <div id="authPanel">
     <input type="password" id="password" placeholder="请输入密码">
     <button onclick="verifyPassword()">登录</button>
   </div>
-  
-  <div class="lightbox" id="lightbox">
-    <span class="lightbox-close" onclick="closeLightbox()">×</span>
-    <img id="lightbox-img" class="lightbox-content" src="" alt="">
-    <video id="lightbox-video" class="lightbox-content" controls></video>
+  <button id="postBtn" style="display:none;">发布</button>
+  <div id="postPanel" style="display:none;">
+    <div contenteditable="true" id="shuoshuoEditor" style="min-height:100px; border:1px solid #ccc; padding:10px;"></div>
+    <input type="file" id="mediaUpload" multiple>
+    <select id="fontSelector">
+      <option value="Arial">Arial</option>
+      <option value="Courier New">Courier New</option>
+      <option value="Times New Roman">Times New Roman</option>
+    </select>
+    <input type="color" id="colorSelector">
+    <button id="bgBtn">背景</button>
+    <button id="submitBtn">提交</button>
+    <button id="cancelBtn">取消</button>
   </div>
-
+  <div id="status"></div>
+  <div id="contentContainer"></div>
+  <div id="lightbox" onclick="closeLightbox()">
+    <img id="lightbox-img" style="display:none;">
+    <video id="lightbox-video" controls style="display:none;"></video>
+  </div>
   <script>
-    // ===== 完全匹配您截图的B2配置 =====
     const B2_CONFIG = {
-      keyId: "6a27240916c8",                     // 您提供的keyId
-      applicationKey: "005545b946865f64d0d0c8d3de901e43750759c15e", // 您提供的applicationKey
-      bucketName: "sakino-personal",              // 与截图完全一致（注意无空格）
-      bucketId: "56fa12372214408991760c18",       // 您提供的bucketId
-      endpoint: "https://s3.us-east-005.backblazeb2.com", // 美国东部
-
-    const userInfo = {
-      avatar: 'https://via.placeholder.com/50',
-      nickname: 'Sakino'
+      keyId: 'your_key_id',
+      applicationKey: 'your_application_key',
+      bucketId: 'your_bucket_id',
+      bucketName: 'your_bucket_name',
+      endpoint: 'https://f000.backblazeb2.com'
     };
 
-    // ===== 初始化 =====
+    const userInfo = {
+      nickname: '管理员',
+      avatar: 'avatar.png'
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
       checkAuthStatus();
       loadContentFromB2();
-      
+
       document.getElementById('postBtn').addEventListener('click', togglePostPanel);
       document.getElementById('cancelBtn').addEventListener('click', togglePostPanel);
       document.getElementById('submitBtn').addEventListener('click', publishContent);
-      
+
       document.getElementById('fontSelector').addEventListener('change', changeFont);
       document.getElementById('colorSelector').addEventListener('input', changeColor);
       document.getElementById('bgBtn').addEventListener('click', setBackground);
     });
 
-    // ===== 从B2加载内容 =====
     async function loadContentFromB2() {
       try {
         updateStatus('正在从B2加载内容...');
-        
-        // 1. 获取B2授权
+
         const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
           headers: {
             'Authorization': `Basic ${btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)}`
           }
         });
         const { apiUrl, authorizationToken } = await authRes.json();
-        
-        // 2. 获取存储桶中的所有文件
+
         const listRes = await fetch(`${apiUrl}/b2api/v2/b2_list_file_names`, {
           method: 'POST',
           headers: { 'Authorization': authorizationToken },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             bucketId: B2_CONFIG.bucketId,
-            prefix: 'metadata/'  // 只加载元数据文件
+            prefix: 'metadata/'
           })
         });
-        
+
         const { files } = await listRes.json();
-        
+
         if (!files || files.length === 0) {
           updateStatus('B2存储桶中没有内容');
           return;
         }
-        
-        // 3. 加载所有元数据文件内容
+
         const posts = [];
         for (const file of files) {
           const fileUrl = `${B2_CONFIG.endpoint}/file/${B2_CONFIG.bucketName}/${file.fileName}`;
           const res = await fetch(fileUrl);
           posts.push(await res.json());
         }
-        
-        // 4. 按时间排序并渲染
+
         posts.sort((a, b) => new Date(b.time) - new Date(a.time));
         renderContent(posts);
         updateStatus(`已加载 ${posts.length} 条内容`);
@@ -366,29 +114,28 @@
       }
     }
 
-    // ===== 发布内容到B2 =====
     async function publishContent() {
       const editor = document.getElementById('shuoshuoEditor');
       const content = editor.innerHTML;
       const mediaInput = document.getElementById('mediaUpload');
-      
+      const submitBtn = document.getElementById('submitBtn');
+
       if (!content.trim() && mediaInput.files.length === 0) {
         alert('内容或媒体文件不能为空');
         return;
       }
-      
+
+      submitBtn.disabled = true;
+      updateStatus('正在发布内容到B2...');
+
       try {
-        updateStatus('正在发布内容到B2...');
-        
-        // 1. 获取B2授权
         const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
           headers: {
             'Authorization': `Basic ${btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)}`
           }
         });
         const { apiUrl, authorizationToken } = await authRes.json();
-        
-        // 2. 获取上传URL
+
         const uploadUrlRes = await fetch(`${apiUrl}/b2api/v2/b2_get_upload_url`, {
           method: 'POST',
           headers: { 'Authorization': authorizationToken },
@@ -396,31 +143,33 @@
         });
         const { uploadUrl, authorizationToken: uploadAuthToken } = await uploadUrlRes.json();
 
-        // 3. 上传媒体文件
         const mediaUrls = [];
         for (const file of mediaInput.files) {
           const fileName = `media/${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
-          
+          const encodedFileName = encodeURIComponent(fileName);
+
           const uploadRes = await fetch(uploadUrl, {
             method: 'POST',
             headers: {
               'Authorization': uploadAuthToken,
-              'X-Bz-File-Name': fileName,
+              'X-Bz-File-Name': encodedFileName,
               'Content-Type': file.type,
               'X-Bz-Content-Sha1': 'do_not_verify'
             },
             body: file
           });
-          
-          const { downloadUrl } = await uploadRes.json();
+
+          if (!uploadRes.ok) {
+            throw new Error(`上传失败: ${file.name}`);
+          }
+
           mediaUrls.push({
             type: file.type.startsWith('image') ? 'image' : 'video',
-            url: downloadUrl,
+            url: `${B2_CONFIG.endpoint}/file/${B2_CONFIG.bucketName}/${fileName}`,
             mimetype: file.type
           });
         }
 
-        // 4. 创建元数据文件
         const metadata = {
           type: 'shuoshuo',
           content: content,
@@ -430,179 +179,130 @@
           time: new Date().toISOString(),
           media: mediaUrls
         };
-        
-        // 5. 上传元数据文件
+
         const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
         const metadataFileName = `metadata/${Date.now()}.json`;
-        
-        await fetch(uploadUrl, {
+        const encodedMetadataFileName = encodeURIComponent(metadataFileName);
+
+        const metadataUploadRes = await fetch(uploadUrl, {
           method: 'POST',
-            headers: {
-              'Authorization': uploadAuthToken,
-              'X-Bz-File-Name': metadataFileName,
-              'Content-Type': 'application/json',
-              'X-Bz-Content-Sha1': 'do_not_verify'
-            },
-            body: metadataBlob
+          headers: {
+            'Authorization': uploadAuthToken,
+            'X-Bz-File-Name': encodedMetadataFileName,
+            'Content-Type': 'application/json',
+            'X-Bz-Content-Sha1': 'do_not_verify'
+          },
+          body: metadataBlob
         });
 
-        // 6. 重新加载内容
+        if (!metadataUploadRes.ok) {
+          throw new Error('元数据上传失败');
+        }
+
         await loadContentFromB2();
         togglePostPanel();
         updateStatus('内容发布成功！');
       } catch (error) {
         console.error('发布错误:', error);
         updateStatus('发布失败: ' + error.message);
+      } finally {
+        submitBtn.disabled = false;
       }
     }
 
-    // ===== 渲染内容 =====
     function renderContent(posts) {
       const container = document.getElementById('contentContainer');
       container.innerHTML = posts.map(post => {
         if (post.type === 'shuoshuo') {
           return `
             <div class="content-item shuoshuo-item" style="background: ${post.background || 'white'}">
-              <div class="shuoshuo-content">
-                <div class="shuoshuo-header">
-                  <img src="${post.avatar}" class="avatar" alt="${post.nickname}">
-                  <div class="user-info">
-                    <div class="nickname">${post.nickname}</div>
-                    <div class="post-time">${new Date(post.time).toLocaleString()}</div>
-                  </div>
+                            <div class="shuoshuo-header">
+                <img src="${post.avatar}" class="avatar">
+                <div class="user-info">
+                  <div class="nickname">${post.nickname}</div>
+                  <div class="post-time">${new Date(post.time).toLocaleString()}</div>
                 </div>
-                <div class="shuoshuo-text">${post.content}</div>
-                ${post.media && post.media.length > 0 ? `
-                  <div class="media-container">
-                    ${post.media.map(media => `
-                      ${media.type === 'image' ? `
-                        <img src="${media.url}" class="media-thumbnail" 
-                             onclick="openLightbox('${media.url}', 'image')">
-                      ` : `
-                        <video class="media-thumbnail" onclick="openLightbox('${media.url}', 'video')">
-                          <source src="${media.url}" type="${media.mimetype}">
-                        </video>
-                      `}
-                    `).join('')}
-                  </div>
-                ` : ''}
+              </div>
+              <div class="shuoshuo-text">${post.content}</div>
+              <div class="media-container">
+                ${post.media?.map(media => media.type === 'image'
+                  ? `<img src="${media.url}" class="media-thumbnail" onclick="showLightbox('${media.url}', 'image')">`
+                  : `<video src="${media.url}" class="media-thumbnail" onclick="showLightbox('${media.url}', 'video')"></video>`
+                ).join('') || ''}
               </div>
             </div>
           `;
-        } else {
-          return `
-            <div class="content-item" onclick="openLightbox('${post.url}', '${post.type}')">
-              ${post.type === 'image' ? 
-                `<img src="${post.url}" loading="lazy">` : 
-                `<video><source src="${post.url}" type="${post.mimetype}"></video>`}
-            </div>
-          `;
         }
+        return '';
       }).join('');
     }
 
-    // ===== 辅助函数 =====
+    function updateStatus(message) {
+      document.getElementById('status').textContent = message;
+    }
+
     function togglePostPanel() {
       const panel = document.getElementById('postPanel');
-      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-      
-      if (panel.style.display === 'block') {
-        document.getElementById('shuoshuoEditor').focus();
+      const btn = document.getElementById('postBtn');
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      btn.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function showLightbox(url, type) {
+      const lightbox = document.getElementById('lightbox');
+      const img = document.getElementById('lightbox-img');
+      const video = document.getElementById('lightbox-video');
+      if (type === 'image') {
+        img.src = url;
+        img.style.display = 'block';
+        video.style.display = 'none';
       } else {
-        document.getElementById('shuoshuoEditor').innerHTML = '';
-        document.getElementById('shuoshuoEditor').style.background = '';
-        document.getElementById('mediaUpload').value = '';
+        video.src = url;
+        video.style.display = 'block';
+        img.style.display = 'none';
       }
+      lightbox.style.display = 'flex';
     }
-    
-    function changeFont() {
-      const font = this.value;
-      document.execCommand('fontName', false, font);
-      document.getElementById('shuoshuoEditor').focus();
+
+    function closeLightbox() {
+      document.getElementById('lightbox').style.display = 'none';
+      document.getElementById('lightbox-img').src = '';
+      document.getElementById('lightbox-video').pause();
+      document.getElementById('lightbox-video').src = '';
     }
-    
-    function changeColor() {
-      const color = this.value;
-      document.execCommand('foreColor', false, color);
-      document.getElementById('shuoshuoEditor').focus();
-    }
-    
-    function setBackground() {
-      const colors = [
-        'white', 
-        '#f0f8ff', 
-        '#f5f5dc', 
-        '#fff0f5', 
-        '#f0fff0', 
-        'linear-gradient(135deg, #74ebd5 0%, #9face6 100%)',
-        'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
-      ];
-      
-      const currentBg = document.getElementById('shuoshuoEditor').style.background;
-      const currentIndex = colors.indexOf(currentBg);
-      const nextIndex = (currentIndex + 1) % colors.length;
-      
-      document.getElementById('shuoshuoEditor').style.background = colors[nextIndex];
-    }
-    
-    function checkAuthStatus() {
-      if (localStorage.getItem('gallery_auth') === 'true') {
+
+    function verifyPassword() {
+      const pwd = document.getElementById('password').value;
+      if (pwd === 'your_password') {
+        localStorage.setItem('auth', 'true');
         document.getElementById('authPanel').style.display = 'none';
         document.getElementById('postBtn').style.display = 'block';
-      } else {
-        document.getElementById('authPanel').style.display = 'block';
-        document.getElementById('postBtn').style.display = 'none';
-        document.getElementById('postPanel').style.display = 'none';
-      }
-    }
-    
-    async function verifyPassword() {
-      const password = document.getElementById('password').value;
-      const hashed = await sha256(password);
-      
-      if (hashed === 'a7ad9618cc9a53cc8fd44f27383f0fb58d5808ae0d8b5888935ffd30e20713b3') {
-        localStorage.setItem('gallery_auth', 'true');
-        checkAuthStatus();
-        updateStatus('管理员模式已激活');
       } else {
         alert('密码错误');
       }
     }
-    
-    function openLightbox(src, type) {
-      const lightbox = document.getElementById('lightbox');
-      const img = document.getElementById('lightbox-img');
-      const video = document.getElementById('lightbox-video');
-      
-      if (type === 'image') {
-        img.src = src;
-        img.style.display = 'block';
-        video.style.display = 'none';
-      } else {
-        video.src = src;
-        video.style.display = 'block';
-        img.style.display = 'none';
+
+    function checkAuthStatus() {
+      if (localStorage.getItem('auth') === 'true') {
+        document.getElementById('authPanel').style.display = 'none';
+        document.getElementById('postBtn').style.display = 'block';
       }
-      
-      lightbox.style.display = 'flex';
     }
-    
-    function closeLightbox() {
-      document.getElementById('lightbox').style.display = 'none';
-      document.getElementById('lightbox-img').src = '';
-      document.getElementById('lightbox-video').src = '';
-      document.getElementById('lightbox-video').pause();
+
+    function changeFont() {
+      const font = document.getElementById('fontSelector').value;
+      document.execCommand('fontName', false, font);
     }
-    
-    function updateStatus(message) {
-      document.getElementById('status').textContent = message;
+
+    function changeColor() {
+      const color = document.getElementById('colorSelector').value;
+      document.execCommand('foreColor', false, color);
     }
-    
-    async function sha256(message) {
-      const msgBuffer = new TextEncoder().encode(message);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    function setBackground() {
+      const editor = document.getElementById('shuoshuoEditor');
+      const color = document.getElementById('colorSelector').value;
+      editor.style.background = color;
     }
   </script>
 </body>
