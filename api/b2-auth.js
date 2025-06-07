@@ -1,5 +1,5 @@
 export default async (req, res) => {
-  const { B2_KEY_ID, B2_APP_KEY } = process.env;
+  const { 0056a27240916c80000000001, K005LYE7Ol246Em2MDa0bxhV9sqtixY } = process.env;
   
   if (!B2_KEY_ID || !B2_APP_KEY) {
     return res.status(500).json({ error: "Backblaze 凭证未配置" });
@@ -7,7 +7,7 @@ export default async (req, res) => {
 
   try {
     const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-      headers: { 'Authorization': `Basic ${Buffer.from(`${B2_KEY_ID}:${B2_APP_KEY}`).toString('base64')}` }
+      headers: { 'Authorization': `Basic ${Buffer.from(`${0056a27240916c80000000001}:${K005LYE7Ol246Em2MDa0bxhV9sqtixY}`).toString('base64')}` }
     });
     
     const authData = await authRes.json();
