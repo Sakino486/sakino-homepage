@@ -292,17 +292,14 @@
 
   <script>
     // ===== B2配置 =====
-   const B2_CONFIG = {
-  keyId: "0056a27240916c80000000001",          // 你的 keyId
-  applicationKey: "K005LYE7Ol246Em2MDa0bxhV9sqtixY", // 你的 applicationKey
-  bucketName: "sakino-personal",                // 存储桶名称
-  bucketId: "56fa12372214408991760c18",                   // 必须填写（见下方获取方法）
-  apiUrl: "https://api005.backblazeb2.com",     // 从授权响应获取
-  downloadUrl: "https://f005.backblazeb2.com",  // 从授权响应获取
-  s3ApiUrl: "https://s3.us-east-005.backblazeb2.com" // S3兼容API（可选）
-};
-
-
+    const B2_CONFIG = {
+      keyId: "0056a27240916c80000000001",
+      applicationKey: "K005LYE7Ol246Em2MDa0bxhV9sqtixY",
+      bucketName: "sakino-personal",
+      bucketId: "56fa12372214408991760c18",
+      apiUrl: "https://api005.backblazeb2.com",
+      downloadUrl: "https://f005.backblazeb2.com"
+    };
 
     const userInfo = {
       avatar: 'https://via.placeholder.com/50',
@@ -420,29 +417,21 @@
       video.pause();
     }
 
-    // ===== 从B2加载内容（优化版）=====
+    // ===== 从B2加载内容 =====
     async function loadContentFromB2() {
       try {
         updateStatus('正在连接Backblaze B2...');
-        console.log('正在使用B2配置:', B2_CONFIG);
-
-        // 1. 获取B2授权令牌
+        
+        // 1. 获取授权
         const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-          headers: {
-            'Authorization': `Basic ${btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)}`
-          }
+          headers: { 'Authorization': `Basic ${btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)}` }
         });
-
+        
         if (!authRes.ok) {
-          const errorText = await authRes.text();
-          throw new Error(`B2授权失败 (${authRes.status}): ${errorText}`);
+          throw new Error(`授权失败: ${authRes.status}`);
         }
-
+        
         const authData = await authRes.json();
-        console.log('B2授权响应:', {
-          apiUrl: authData.apiUrl,
-          allowed: authData.allowed.capabilities
-        });
 
         // 2. 获取文件列表
         updateStatus('正在获取文件列表...');
@@ -458,72 +447,48 @@
             maxFileCount: 1000
           })
         });
-
-        if (!listRes.ok) {
-          const errorText = await listRes.text();
-          throw new Error(`获取文件列表失败 (${listRes.status}): ${errorText}`);
-        }
-
+        
         const listData = await listRes.json();
-        console.log('获取到文件列表:', {
-          fileCount: listData.files?.length || 0,
-          nextFileName: listData.nextFileName || '无'
-        });
-
-        // 3. 处理空结果
+        
         if (!listData.files || listData.files.length === 0) {
           updateStatus('存储桶中没有元数据文件');
           return;
         }
 
-        // 4. 并行加载所有元数据文件
+        // 3. 加载每个文件
         updateStatus(`正在加载 ${listData.files.length} 个文件...`);
-        const postPromises = listData.files.map(async (file) => {
-          try {
-            // 构建文件URL（兼容两种端点格式）
-            const fileUrl = `${B2_CONFIG.endpoint.replace(/\/$/, '')}/${B2_CONFIG.bucketName}/${file.fileName}`;
-            console.log('正在加载文件:', fileUrl);
-
-            const fileRes = await fetch(fileUrl);
-            if (!fileRes.ok) throw new Error(`文件请求失败 (${fileRes.status})`);
-
-            const postData = await fileRes.json();
-            if (!postData.time) postData.time = file.uploadTimestamp; // 备用时间戳
-
-            return postData;
-          } catch (fileError) {
-            console.error(`加载文件 ${file.fileName} 失败:`, fileError);
-            return null;
-          }
-        });
-
-        // 等待所有请求完成并过滤失败项
-        const posts = (await Promise.all(postPromises)).filter(post => post !== null);
+        const posts = [];
         
-        if (posts.length === 0) {
-          throw new Error('所有文件加载失败，请检查网络或文件权限');
+        for (const file of listData.files) {
+          try {
+            const fileUrl = `${B2_CONFIG.downloadUrl}/file/${B2_CONFIG.bucketName}/${file.fileName}`;
+            const fileRes = await fetch(fileUrl);
+            
+            if (!fileRes.ok) {
+              console.error(`文件加载失败: ${fileUrl} (${fileRes.status})`);
+              continue;
+            }
+            
+            const postData = await fileRes.json();
+            postData.time = postData.time || file.uploadTimestamp;
+            posts.push(postData);
+          } catch (error) {
+            console.error(`加载文件失败: ${file.fileName}`, error);
+          }
         }
 
-        // 5. 按时间排序
-        posts.sort((a, b) => new Date(b.time) - new Date(a.time));
-        console.log('成功加载的帖子:', posts);
-
-        // 6. 渲染内容
-        renderContent(posts);
-        updateStatus(`已加载 ${posts.length} 条内容，最新发布于 ${new Date(posts[0].time).toLocaleString()}`);
+        // 4. 渲染内容
+        if (posts.length > 0) {
+          posts.sort((a, b) => new Date(b.time) - new Date(a.time));
+          renderContent(posts);
+          updateStatus(`已加载 ${posts.length} 条内容`);
+        } else {
+          updateStatus('没有可显示的内容');
+        }
 
       } catch (error) {
-        console.error('B2加载流程错误:', error);
-        
-        // 特殊处理常见错误
-        let errorMessage = error.message;
-        if (error.message.includes('Failed to fetch')) {
-          errorMessage = '网络连接失败，请检查: 1) 是否使用HTTPS 2) 是否配置CORS';
-        } else if (error.message.includes('401')) {
-          errorMessage = '认证失败，请检查KeyID和ApplicationKey';
-        }
-
-        updateStatus(`加载失败: ${errorMessage}`);
+        console.error('加载失败:', error);
+        updateStatus(`加载失败: ${error.message}`);
         
         // 显示重试按钮
         const retryBtn = document.createElement('button');
@@ -620,9 +585,6 @@
           const fileName = `media/${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
           const fileType = file.type.startsWith('image') ? 'image' : 'video';
           
-          const formData = new FormData();
-          formData.append('file', file);
-          
           const uploadRes = await fetch(uploadUrl, {
             method: 'POST',
             headers: {
@@ -637,7 +599,7 @@
           const uploadResult = await uploadRes.json();
           mediaUrls.push({
             type: fileType,
-            url: `${B2_CONFIG.endpoint}/file/${B2_CONFIG.bucketName}/${fileName}`,
+            url: `${B2_CONFIG.downloadUrl}/file/${B2_CONFIG.bucketName}/${fileName}`,
             mimetype: file.type
           });
         }
