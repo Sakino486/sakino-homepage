@@ -416,57 +416,163 @@
       video.pause();
     }
 
-    // ===== 从B2加载内容 =====
+    // ===== 从B2加载内容（优化版）=====
     async function loadContentFromB2() {
       try {
-        updateStatus('正在从B2加载内容...');
-        
-        // 1. 获取B2授权
+        updateStatus('正在连接Backblaze B2...');
+        console.log('正在使用B2配置:', B2_CONFIG);
+
+        // 1. 获取B2授权令牌
         const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
           headers: {
             'Authorization': `Basic ${btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)}`
           }
         });
+
+        if (!authRes.ok) {
+          const errorText = await authRes.text();
+          throw new Error(`B2授权失败 (${authRes.status}): ${errorText}`);
+        }
+
         const authData = await authRes.json();
-        const { apiUrl, authorizationToken } = authData;
-        
-        // 2. 获取存储桶中的所有文件
-        const listRes = await fetch(`${apiUrl}/b2api/v2/b2_list_file_names`, {
+        console.log('B2授权响应:', {
+          apiUrl: authData.apiUrl,
+          allowed: authData.allowed.capabilities
+        });
+
+        // 2. 获取文件列表
+        updateStatus('正在获取文件列表...');
+        const listRes = await fetch(`${authData.apiUrl}/b2api/v2/b2_list_file_names`, {
           method: 'POST',
           headers: { 
-            'Authorization': authorizationToken,
+            'Authorization': authData.authorizationToken,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ 
             bucketId: B2_CONFIG.bucketId,
-            prefix: 'metadata/'  // 只加载元数据文件
+            prefix: 'metadata/',
+            maxFileCount: 1000
           })
         });
-        
+
+        if (!listRes.ok) {
+          const errorText = await listRes.text();
+          throw new Error(`获取文件列表失败 (${listRes.status}): ${errorText}`);
+        }
+
         const listData = await listRes.json();
-        const { files } = listData;
-        
-        if (!files || files.length === 0) {
-          updateStatus('B2存储桶中没有内容');
+        console.log('获取到文件列表:', {
+          fileCount: listData.files?.length || 0,
+          nextFileName: listData.nextFileName || '无'
+        });
+
+        // 3. 处理空结果
+        if (!listData.files || listData.files.length === 0) {
+          updateStatus('存储桶中没有元数据文件');
           return;
         }
+
+        // 4. 并行加载所有元数据文件
+        updateStatus(`正在加载 ${listData.files.length} 个文件...`);
+        const postPromises = listData.files.map(async (file) => {
+          try {
+            // 构建文件URL（兼容两种端点格式）
+            const fileUrl = `${B2_CONFIG.endpoint.replace(/\/$/, '')}/${B2_CONFIG.bucketName}/${file.fileName}`;
+            console.log('正在加载文件:', fileUrl);
+
+            const fileRes = await fetch(fileUrl);
+            if (!fileRes.ok) throw new Error(`文件请求失败 (${fileRes.status})`);
+
+            const postData = await fileRes.json();
+            if (!postData.time) postData.time = file.uploadTimestamp; // 备用时间戳
+
+            return postData;
+          } catch (fileError) {
+            console.error(`加载文件 ${file.fileName} 失败:`, fileError);
+            return null;
+          }
+        });
+
+        // 等待所有请求完成并过滤失败项
+        const posts = (await Promise.all(postPromises)).filter(post => post !== null);
         
-        // 3. 加载所有元数据文件内容
-        const posts = [];
-        for (const file of files) {
-          const fileUrl = `${B2_CONFIG.endpoint}/file/${B2_CONFIG.bucketName}/${file.fileName}`;
-          const res = await fetch(fileUrl);
-          posts.push(await res.json());
+        if (posts.length === 0) {
+          throw new Error('所有文件加载失败，请检查网络或文件权限');
         }
-        
-        // 4. 按时间排序并渲染
+
+        // 5. 按时间排序
         posts.sort((a, b) => new Date(b.time) - new Date(a.time));
+        console.log('成功加载的帖子:', posts);
+
+        // 6. 渲染内容
         renderContent(posts);
-        updateStatus(`已加载 ${posts.length} 条内容`);
+        updateStatus(`已加载 ${posts.length} 条内容，最新发布于 ${new Date(posts[0].time).toLocaleString()}`);
+
       } catch (error) {
-        console.error('加载失败:', error);
-        updateStatus('加载失败: ' + error.message);
+        console.error('B2加载流程错误:', error);
+        
+        // 特殊处理常见错误
+        let errorMessage = error.message;
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = '网络连接失败，请检查: 1) 是否使用HTTPS 2) 是否配置CORS';
+        } else if (error.message.includes('401')) {
+          errorMessage = '认证失败，请检查KeyID和ApplicationKey';
+        }
+
+        updateStatus(`加载失败: ${errorMessage}`);
+        
+        // 显示重试按钮
+        const retryBtn = document.createElement('button');
+        retryBtn.textContent = '点击重试';
+        retryBtn.style.marginLeft = '10px';
+        retryBtn.onclick = loadContentFromB2;
+        document.getElementById('status').appendChild(retryBtn);
       }
+    }
+
+    // ===== 渲染内容 =====
+    function renderContent(posts) {
+      const container = document.getElementById('contentContainer');
+      container.innerHTML = posts.map(post => {
+        if (post.type === 'shuoshuo') {
+          return `
+            <div class="content-item shuoshuo-item" style="background: ${post.background || 'white'}">
+              <div class="shuoshuo-content">
+                <div class="shuoshuo-header">
+                  <img src="${post.avatar}" class="avatar" alt="${post.nickname}">
+                  <div class="user-info">
+                    <div class="nickname">${post.nickname}</div>
+                    <div class="post-time">${new Date(post.time).toLocaleString()}</div>
+                  </div>
+                </div>
+                <div class="shuoshuo-text">${post.content}</div>
+                ${post.media && post.media.length > 0 ? `
+                  <div class="media-container">
+                    ${post.media.map(media => `
+                      ${media.type === 'image' ? `
+                        <img src="${media.url}" class="media-thumbnail" 
+                             onclick="openLightbox('${media.url}', 'image')">
+                      ` : `
+                        <video class="media-thumbnail" onclick="openLightbox('${media.url}', 'video')">
+                          <source src="${media.url}" type="${media.mimetype}">
+                        </video>
+                      `}
+                    `).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="content-item" onclick="openLightbox('${post.url}', '${post.type}')">
+              ${post.type === 'image' ? 
+                `<img src="${post.url}" loading="lazy">` : 
+                `<video><source src="${post.url}" type="${post.mimetype}"></video>`}
+            </div>
+          `;
+        }
+      }).join('');
     }
 
     // ===== 发布内容到B2 =====
@@ -566,51 +672,6 @@
         console.error('发布错误:', error);
         updateStatus('发布失败: ' + error.message);
       }
-    }
-
-    // ===== 渲染内容 =====
-    function renderContent(posts) {
-      const container = document.getElementById('contentContainer');
-      container.innerHTML = posts.map(post => {
-        if (post.type === 'shuoshuo') {
-          return `
-            <div class="content-item shuoshuo-item" style="background: ${post.background || 'white'}">
-              <div class="shuoshuo-content">
-                <div class="shuoshuo-header">
-                  <img src="${post.avatar}" class="avatar" alt="${post.nickname}">
-                  <div class="user-info">
-                    <div class="nickname">${post.nickname}</div>
-                    <div class="post-time">${new Date(post.time).toLocaleString()}</div>
-                  </div>
-                </div>
-                <div class="shuoshuo-text">${post.content}</div>
-                ${post.media && post.media.length > 0 ? `
-                  <div class="media-container">
-                    ${post.media.map(media => `
-                      ${media.type === 'image' ? `
-                        <img src="${media.url}" class="media-thumbnail" 
-                             onclick="openLightbox('${media.url}', 'image')">
-                      ` : `
-                        <video class="media-thumbnail" onclick="openLightbox('${media.url}', 'video')">
-                          <source src="${media.url}" type="${media.mimetype}">
-                        </video>
-                      `}
-                    `).join('')}
-                  </div>
-                ` : ''}
-              </div>
-            </div>
-          `;
-        } else {
-          return `
-            <div class="content-item" onclick="openLightbox('${post.url}', '${post.type}')">
-              ${post.type === 'image' ? 
-                `<img src="${post.url}" loading="lazy">` : 
-                `<video><source src="${post.url}" type="${post.mimetype}"></video>`}
-            </div>
-          `;
-        }
-      }).join('');
     }
 
     // ===== 初始化 =====
