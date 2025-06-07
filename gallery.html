@@ -293,11 +293,8 @@
   <script>
     // ===== B2配置 =====
     const B2_CONFIG = {
-      keyId: "0056a27240916c80000000001",
-      applicationKey: "K005LYE7Ol246Em2MDa0bxhV9sqtixY",
       bucketName: "sakino-personal",
       bucketId: "56fa12372214408991760c18",
-      apiUrl: "https://api005.backblazeb2.com",
       downloadUrl: "https://f005.backblazeb2.com"
     };
 
@@ -420,33 +417,13 @@
     // ===== 从B2加载内容 =====
     async function loadContentFromB2() {
       try {
-        updateStatus('正在连接Backblaze B2...');
+        updateStatus('正在加载内容...');
         
-        // 1. 获取授权
-        const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-          headers: { 'Authorization': `Basic ${btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)}` }
-        });
-        
-        if (!authRes.ok) {
-          throw new Error(`授权失败: ${authRes.status}`);
+        // 通过代理获取文件列表
+        const listRes = await fetch(`/api/b2-list?bucketId=${B2_CONFIG.bucketId}&prefix=metadata/`);
+        if (!listRes.ok) {
+          throw new Error(`获取文件列表失败: ${listRes.status}`);
         }
-        
-        const authData = await authRes.json();
-
-        // 2. 获取文件列表
-        updateStatus('正在获取文件列表...');
-        const listRes = await fetch(`${authData.apiUrl}/b2api/v2/b2_list_file_names`, {
-          method: 'POST',
-          headers: { 
-            'Authorization': authData.authorizationToken,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            bucketId: B2_CONFIG.bucketId,
-            prefix: 'metadata/',
-            maxFileCount: 1000
-          })
-        });
         
         const listData = await listRes.json();
         
@@ -455,7 +432,7 @@
           return;
         }
 
-        // 3. 加载每个文件
+        // 加载每个文件
         updateStatus(`正在加载 ${listData.files.length} 个文件...`);
         const posts = [];
         
@@ -477,7 +454,7 @@
           }
         }
 
-        // 4. 渲染内容
+        // 渲染内容
         if (posts.length > 0) {
           posts.sort((a, b) => new Date(b.time) - new Date(a.time));
           renderContent(posts);
@@ -558,79 +535,27 @@
       try {
         updateStatus('正在发布内容到B2...');
         
-        // 1. 获取B2授权
-        const authRes = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-          headers: {
-            'Authorization': `Basic ${btoa(`${B2_CONFIG.keyId}:${B2_CONFIG.applicationKey}`)}`
-          }
-        });
-        const authData = await authRes.json();
-        const { apiUrl, authorizationToken } = authData;
+        // 准备表单数据
+        const formData = new FormData();
+        formData.append('content', content);
+        formData.append('background', editor.style.background || '');
         
-        // 2. 获取上传URL
-        const uploadUrlRes = await fetch(`${apiUrl}/b2api/v2/b2_get_upload_url`, {
-          method: 'POST',
-          headers: { 
-            'Authorization': authorizationToken,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ bucketId: B2_CONFIG.bucketId })
+        // 添加媒体文件
+        Array.from(mediaInput.files).forEach(file => {
+          formData.append('file', file);
         });
-        const uploadData = await uploadUrlRes.json();
-        const { uploadUrl, authorizationToken: uploadAuthToken } = uploadData;
 
-        // 3. 上传媒体文件
-        const mediaUrls = [];
-        for (const file of mediaInput.files) {
-          const fileName = `media/${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
-          const fileType = file.type.startsWith('image') ? 'image' : 'video';
-          
-          const uploadRes = await fetch(uploadUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': uploadAuthToken,
-              'X-Bz-File-Name': fileName,
-              'Content-Type': file.type,
-              'X-Bz-Content-Sha1': 'do_not_verify'
-            },
-            body: file
-          });
-          
-          const uploadResult = await uploadRes.json();
-          mediaUrls.push({
-            type: fileType,
-            url: `${B2_CONFIG.downloadUrl}/file/${B2_CONFIG.bucketName}/${fileName}`,
-            mimetype: file.type
-          });
+        // 通过代理上传
+        const uploadRes = await fetch(`/api/b2-upload?bucketId=${B2_CONFIG.bucketId}`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!uploadRes.ok) {
+          throw new Error(`上传失败: ${uploadRes.status}`);
         }
 
-        // 4. 创建元数据文件
-        const metadata = {
-          type: 'shuoshuo',
-          content: content,
-          background: editor.style.background || '',
-          nickname: userInfo.nickname,
-          avatar: userInfo.avatar,
-          time: new Date().toISOString(),
-          media: mediaUrls
-        };
-        
-        // 5. 上传元数据文件
-        const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
-        const metadataFileName = `metadata/${Date.now()}.json`;
-        
-        await fetch(uploadUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': uploadAuthToken,
-            'X-Bz-File-Name': metadataFileName,
-            'Content-Type': 'application/json',
-            'X-Bz-Content-Sha1': 'do_not_verify'
-          },
-          body: metadataBlob
-        });
-
-        // 6. 重新加载内容
+        // 重新加载内容
         await loadContentFromB2();
         togglePostPanel();
         updateStatus('内容发布成功！');
@@ -656,3 +581,4 @@
   </script>
 </body>
 </html>
+
