@@ -292,19 +292,16 @@
 
   <script>
     // ===== B2配置 =====
-    const B2_CONFIG = {
-  // 密钥配置（必须保持这个格式）
-  keyId: "0056a27240916c80000000001", // 已修正
-  applicationKey: "K005LYE7Ol246Em2MDa0bxhV9sqtixY", // 正确
-  
-  // 账户信息
-  accountId: "6a27240916c8", // 从API响应获得
-  bucketName: "sakino-personal", // 存储桶名称
-  
-  // 端点配置（关键修正点 ↓↓↓）
-  apiUrl: "https://api005.backblazeb2.com", // 必须用apiUrl而不是apiEndpoint
-  downloadUrl: "https://f005.backblazeb2.com" // 从你的API响应中提取
+   const B2_CONFIG = {
+  keyId: "0056a27240916c80000000001",          // 你的 keyId
+  applicationKey: "K005LYE7Ol246Em2MDa0bxhV9sqtixY", // 你的 applicationKey
+  bucketName: "sakino-personal",                // 存储桶名称
+  bucketId: "56fa12372214408991760c18",                   // 必须填写（见下方获取方法）
+  apiUrl: "https://api005.backblazeb2.com",     // 从授权响应获取
+  downloadUrl: "https://f005.backblazeb2.com",  // 从授权响应获取
+  s3ApiUrl: "https://s3.us-east-005.backblazeb2.com" // S3兼容API（可选）
 };
+
 
 
     const userInfo = {
