@@ -291,12 +291,14 @@
   </div>
 
   <script>
-    // ===== 配置 =====
+    // ===== 完全匹配您截图的B2配置 =====
     const B2_CONFIG = {
-      keyId: "6a27240916c8",       // B2应用密钥ID
-      applicationKey: "00523639498d53c72d1ecaa02e45f6f42efb358592", // B2应用密钥
-      bucketName: "sakino-personal",      // B2存储桶名称
-      bucketId: "56fa12372214408991760c18"         // B2存储桶ID
+      keyId: "6a27240916c8",                     // 您提供的keyId
+      applicationKey: "00523639498d53c72d1ecaa02e45f6f42efb358592", // 您提供的applicationKey
+      bucketName: "sakino-personal",              // 与截图完全一致（注意无空格）
+      bucketId: "56fa12372214408991760c18",       // 您提供的bucketId
+      endpoint: "https://s3.us-east-005.backblazeb2.com", // 美国东部
+      corsOrigin: "https://sakino-homepage.vercel.app" // 与截图完全一致
     };
 
     const userInfo = {
@@ -351,7 +353,7 @@
         // 3. 加载所有元数据文件内容
         const posts = [];
         for (const file of files) {
-          const fileUrl = `https://f003.backblazeb2.com/file/${B2_CONFIG.bucketName}/${file.fileName}`;
+          const fileUrl = `${B2_CONFIG.endpoint}/file/${B2_CONFIG.bucketName}/${file.fileName}`;
           const res = await fetch(fileUrl);
           posts.push(await res.json());
         }
@@ -437,13 +439,13 @@
         
         await fetch(uploadUrl, {
           method: 'POST',
-          headers: {
-            'Authorization': uploadAuthToken,
-            'X-Bz-File-Name': metadataFileName,
-            'Content-Type': 'application/json',
-            'X-Bz-Content-Sha1': 'do_not_verify'
-          },
-          body: metadataBlob
+            headers: {
+              'Authorization': uploadAuthToken,
+              'X-Bz-File-Name': metadataFileName,
+              'Content-Type': 'application/json',
+              'X-Bz-Content-Sha1': 'do_not_verify'
+            },
+            body: metadataBlob
         });
 
         // 6. 重新加载内容
@@ -607,4 +609,3 @@
   </script>
 </body>
 </html>
-
